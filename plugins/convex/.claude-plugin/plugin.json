@@ -1,0 +1,23 @@
+{
+  "name": "convex",
+  "description": "Claude Code skills for Convex development in Coder workspaces. Self-hosted Convex, queries, mutations, React integration, RAG, and Chef agent workflows.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "convex",
+    "backend",
+    "database",
+    "realtime",
+    "self-hosted",
+    "coder-workspace",
+    "rag",
+    "skills",
+    "domain-knowledge"
+  ]
+}

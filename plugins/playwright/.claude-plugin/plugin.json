@@ -1,0 +1,22 @@
+{
+  "name": "playwright",
+  "description": "Claude Code skills for Playwright E2E testing. Test patterns, fixtures, page objects, accessibility testing, and best practices for Astro + React projects.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "playwright",
+    "e2e-testing",
+    "end-to-end",
+    "testing",
+    "test-automation",
+    "accessibility",
+    "skills",
+    "domain-knowledge"
+  ]
+}

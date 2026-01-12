@@ -1,0 +1,21 @@
+{
+  "name": "coder",
+  "description": "Claude Code skills for Coder development workspace environment. Linux x86_64 container runtime, Docker-in-Docker, Kubernetes CLI, and workspace-specific tools.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "coder",
+    "workspace",
+    "development-environment",
+    "docker",
+    "kubernetes",
+    "linux",
+    "container-runtime"
+  ]
+}

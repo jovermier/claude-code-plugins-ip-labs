@@ -1,0 +1,21 @@
+{
+  "name": "astro",
+  "description": "Claude Code skills for Astro development. Latest Astro features (v4-v5, mid-2024 to 2025), components, pages, and content collections.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "astro",
+    "static-site-generator",
+    "components",
+    "content-collections",
+    "islands",
+    "skills",
+    "domain-knowledge"
+  ]
+}

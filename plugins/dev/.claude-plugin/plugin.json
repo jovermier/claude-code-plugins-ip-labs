@@ -1,0 +1,23 @@
+{
+  "name": "dev",
+  "description": "Core development workflows, hooks, and commands for Innovative Prospects projects. Meta-workflow, TDD, UI iteration, bug fixing, and project management.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "workflows",
+    "tdd",
+    "ui-iteration",
+    "bug-fix",
+    "meta-workflow",
+    "commands",
+    "hooks",
+    "project-management",
+    "development"
+  ]
+}

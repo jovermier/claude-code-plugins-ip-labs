@@ -1,0 +1,135 @@
+{
+  "name": "ip-labs-marketplace",
+  "owner": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "metadata": {
+    "description": "Claude Code marketplace for Innovative Prospects development workflows covering React, Astro, Next.js, Convex, and Playwright",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "dev",
+      "description": "Core development workflows, hooks, and commands for Innovative Prospects projects. Meta-workflow, TDD, UI iteration, bug fixing, and project management.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Innovative Prospects",
+        "url": "https://github.com/jovermier"
+      },
+      "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "license": "MIT",
+      "tags": ["workflows", "tdd", "ui-iteration", "bug-fix", "meta-workflow", "commands", "hooks", "project-management", "development"],
+      "source": "./plugins/dev",
+      "commands": [
+        "./commands/setup-claude.md",
+        "./commands/new-page.md",
+        "./commands/new-component.md",
+        "./commands/new-blog-post.md",
+        "./commands/test-ui.md"
+      ],
+      "hooks": [
+        "./hooks/auto-archive-plans.py",
+        "./hooks/meta-workflow-enforcer.py"
+      ],
+      "skills": [
+        "./skills/plan-manager"
+      ]
+    },
+    {
+      "name": "coder",
+      "description": "Claude Code skills for Coder development workspace environment. Linux x86_64 container runtime, Docker-in-Docker, Kubernetes CLI, and workspace-specific tools.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Innovative Prospects",
+        "url": "https://github.com/jovermier"
+      },
+      "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "license": "MIT",
+      "tags": ["coder", "workspace", "development-environment", "docker", "kubernetes", "linux", "container-runtime"],
+      "source": "./plugins/coder",
+      "skills": ["./skills/coder-environment"]
+    },
+    {
+      "name": "astro",
+      "description": "Claude Code skills for Astro development. Latest Astro features (v4-v5, mid-2024 to 2025), components, pages, and content collections.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Innovative Prospects",
+        "url": "https://github.com/jovermier"
+      },
+      "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "license": "MIT",
+      "tags": ["astro", "static-site-generator", "components", "content-collections", "islands", "skills"],
+      "source": "./plugins/astro",
+      "skills": ["./skills/latest-astro"]
+    },
+    {
+      "name": "react",
+      "description": "Claude Code skills for React development. React 19, React Compiler, new hooks, actions, and modern patterns (2024-2026).",
+      "version": "1.0.0",
+      "author": {
+        "name": "Innovative Prospects",
+        "url": "https://github.com/jovermier"
+      },
+      "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "license": "MIT",
+      "tags": ["react", "react-19", "react-compiler", "hooks", "components", "skills"],
+      "source": "./plugins/react",
+      "skills": ["./skills/latest-react"]
+    },
+    {
+      "name": "nextjs",
+      "description": "Claude Code skills for Next.js development. Latest Next.js features (past 1.5 years), App Router, Server Components, and performance.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Innovative Prospects",
+        "url": "https://github.com/jovermier"
+      },
+      "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "license": "MIT",
+      "tags": ["nextjs", "app-router", "server-components", "server-actions", "react", "skills"],
+      "source": "./plugins/nextjs",
+      "skills": ["./skills/latest-nextjs"]
+    },
+    {
+      "name": "convex",
+      "description": "Claude Code skills for Convex development in Coder workspaces. Self-hosted Convex, queries, mutations, React integration, RAG, and Chef agent workflows.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Innovative Prospects",
+        "url": "https://github.com/jovermier"
+      },
+      "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "license": "MIT",
+      "tags": ["convex", "backend", "database", "realtime", "self-hosted", "coder-workspace", "rag", "skills"],
+      "source": "./plugins/convex",
+      "skills": [
+        "./skills/coder-convex",
+        "./skills/coder-convex-setup",
+        "./skills/convex-chef"
+      ]
+    },
+    {
+      "name": "playwright",
+      "description": "Claude Code skills for Playwright E2E testing. Test patterns, fixtures, page objects, accessibility testing, and best practices for Astro + React projects.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Innovative Prospects",
+        "url": "https://github.com/jovermier"
+      },
+      "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+      "license": "MIT",
+      "tags": ["playwright", "e2e-testing", "testing", "test-automation", "accessibility", "skills"],
+      "source": "./plugins/playwright",
+      "skills": ["./skills/playwright-test"]
+    }
+  ]
+}

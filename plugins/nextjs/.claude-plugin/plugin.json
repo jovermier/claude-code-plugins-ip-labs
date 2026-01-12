@@ -1,0 +1,22 @@
+{
+  "name": "nextjs",
+  "description": "Claude Code skills for Next.js development. Latest Next.js features (past 1.5 years), App Router, Server Components, and performance.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "nextjs",
+    "next.js",
+    "app-router",
+    "server-components",
+    "server-actions",
+    "react",
+    "skills",
+    "domain-knowledge"
+  ]
+}
