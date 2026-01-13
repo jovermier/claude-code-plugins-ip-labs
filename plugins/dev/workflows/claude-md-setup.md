@@ -9,25 +9,6 @@ Detects project type and routes to the appropriate language-specific sub-workflo
 - After adding new technologies to the project
 - When onboarding to an existing project
 
-## Architecture
-
-```
-claude-md-setup.md (Router)
-├── Step 1: Scan ALL Marketplace Plugins (CENTRALIZED)
-│   └── Builds complete plugin/skill registry
-├── Step 2: Detect Project Type
-├── Step 3: Route to sub-workflow WITH REGISTRY
-└── Sub-workflows receive pre-scanned registry:
-    ├── claude-md-setup-javascript.md  # Node.js, TypeScript, Next.js, React, etc.
-    ├── claude-md-setup-python.md      # Python, Django, FastAPI, etc.
-    ├── claude-md-setup-rust.md        # Rust, Cargo
-    ├── claude-md-setup-go.md          # Go modules
-    ├── claude-md-setup-php.md         # PHP, Composer
-    ├── claude-md-setup-ruby.md        # Ruby, Bundler
-    ├── claude-md-setup-java.md        # Java, Maven, Gradle
-    └── claude-md-setup-generic.md     # Fallback for unknown types
-```
-
 ## The Workflow
 
 ### Step 1: Scan ALL Marketplace Plugins (CENTRALIZED)
@@ -58,7 +39,7 @@ find .claude/ -name "SKILL.md" -path "*/skills/*/SKILL.md" 2>/dev/null
 2. Find all `SKILL.md` files in that plugin's `skills/` directory
 3. For each `SKILL.md`, read frontmatter (between `---` markers) to extract: `name`, `description`, `updated`
 
-**Build This Registry Structure:**
+**Build This Registry:**
 
 ```javascript
 const marketplaceRegistry = {
@@ -73,23 +54,16 @@ const marketplaceRegistry = {
           name: "latest-nextjs",
           path: "~/.claude/plugins/cache/.../skills/latest-nextjs/",
           description: "Latest Next.js features",
-          updated: "2026-01-11",
-          claudeSections: {},
-          criticalRules: [],
-          versionContext: {}
+          updated: "2026-01-11"
         }
       ]
     }
   ],
-
-  // Helper functions for sub-workflows
   findPlugin: function(name) { /* ... */ },
   findSkill: function(name) { /* ... */ },
   matchByKeywords: function(keywords) { /* ... */ }
 };
 ```
-
-**IMPORTANT:** Pass this registry to the sub-workflow in Step 3.
 
 ### Step 2: Detect Project Type
 
@@ -97,93 +71,62 @@ const marketplaceRegistry = {
 ls -la | grep -E "(package\.json|pyproject\.toml|setup\.py|requirements\.txt|Cargo\.toml|go\.mod|composer\.json|Gemfile|pom\.xml|build\.gradle)"
 ```
 
-**Detection Logic:**
+| File Present | Sub-Workflow |
+|--------------|--------------|
+| package.json | claude-md-setup-javascript.md |
+| pyproject.toml, setup.py, requirements.txt | claude-md-setup-python.md |
+| Cargo.toml | claude-md-setup-rust.md |
+| go.mod | claude-md-setup-go.md |
+| composer.json | claude-md-setup-php.md |
+| Gemfile | claude-md-setup-ruby.md |
+| pom.xml | claude-md-setup-java.md |
+| build.gradle, build.gradle.kts | claude-md-setup-java.md |
+| Anything else | claude-md-setup-generic.md |
 
-```javascript
-function detectProjectType() {
-  const files = listFiles('.');
+Also detect package manager from lockfiles:
+- pnpm-lock.yaml → pnpm
+- bun.lockb → bun
+- yarn.lock → yarn
+- package-lock.json → npm
 
-  if (files.includes('package.json'))
-    return { type: 'javascript', subWorkflow: 'claude-md-setup-javascript.md', manager: detectPackageManagerJS() };
-  if (files.includes('pyproject.toml'))
-    return { type: 'python', subWorkflow: 'claude-md-setup-python.md', manager: 'poetry' };
-  if (files.includes('setup.py') || files.includes('requirements.txt'))
-    return { type: 'python', subWorkflow: 'claude-md-setup-python.md', manager: 'pip' };
-  if (files.includes('Cargo.toml'))
-    return { type: 'rust', subWorkflow: 'claude-md-setup-rust.md', manager: 'cargo' };
-  if (files.includes('go.mod'))
-    return { type: 'go', subWorkflow: 'claude-md-setup-go.md', manager: 'go' };
-  if (files.includes('composer.json'))
-    return { type: 'php', subWorkflow: 'claude-md-setup-php.md', manager: 'composer' };
-  if (files.includes('Gemfile'))
-    return { type: 'ruby', subWorkflow: 'claude-md-setup-ruby.md', manager: 'bundler' };
-  if (files.includes('pom.xml'))
-    return { type: 'java', subWorkflow: 'claude-md-setup-java.md', manager: 'maven' };
-  if (files.includes('build.gradle') || files.includes('build.gradle.kts'))
-    return { type: 'java', subWorkflow: 'claude-md-setup-java.md', manager: 'gradle' };
+### Step 3: READ AND FOLLOW the Sub-Workflow
 
-  return { type: 'generic', subWorkflow: 'claude-md-setup-generic.md', manager: null };
-}
+**CRITICAL:** You MUST explicitly READ the sub-workflow file and then FOLLOW each step in it.
 
-function detectPackageManagerJS() {
-  const lockfiles = listFiles('.').filter(f => f.match(/(pnpm-lock|yarn\.lock|package-lock|bun\.lockb)/));
-  if (lockfiles.includes('pnpm-lock.yaml')) return 'pnpm';
-  if (lockfiles.includes('bun.lockb')) return 'bun';
-  if (lockfiles.includes('yarn.lock')) return 'yarn';
-  return 'npm';
-}
+1. **Read the full sub-workflow file:**
+   - Read `plugins/dev/workflows/claude-md-setup-[detected-type].md`
+   - Read the ENTIRE file, not just the first part
+
+2. **Follow EACH step in that sub-workflow in order:**
+   - Execute the bash commands shown
+   - Extract the data specified
+   - Generate the CLAUDE.md content as instructed
+
+3. **DO NOT skip steps or generate CLAUDE.md yourself.**
+
+Example:
+```
+Detected: package.json → JavaScript project
+ACTION: Read plugins/dev/workflows/claude-md-setup-javascript.md
+THEN: Follow each step in that file exactly
 ```
 
-### Step 3: Route to Sub-Workflow WITH REGISTRY
+**The sub-workflow will produce the CLAUDE.md content.**
 
-| Project Type  | Sub-Workflow                   |
-|---------------|--------------------------------|
-| JavaScript    | claude-md-setup-javascript.md  |
-| Python        | claude-md-setup-python.md      |
-| Rust          | claude-md-setup-rust.md        |
-| Go            | claude-md-setup-go.md          |
-| PHP           | claude-md-setup-php.md         |
-| Ruby          | claude-md-setup-ruby.md        |
-| Java          | claude-md-setup-java.md        |
-| Generic       | claude-md-setup-generic.md     |
+### Step 4: Write CLAUDE.md
 
-**Input to Sub-Workflow:**
-
-```javascript
-{
-  marketplaceRegistry: {
-    plugins: Plugin[],
-    findPlugin: (name: string) => Plugin | null,
-    findSkill: (name: string) => Skill | null,
-    matchByKeywords: (keywords: string[]) => Plugin[]
-  },
-  projectType: 'javascript' | 'python' | 'rust' | 'go' | 'php' | 'ruby' | 'java' | 'generic',
-  packageManager: string | null,
-  projectRoot: string,
-  existingClaudeMd: string | null
-}
-```
-
-**Sub-workflows MUST:**
-- Use the pre-built registry (NOT re-scan plugins)
-- Extract language-specific dependencies and versions
-- Match detected tech to skills in the registry
-- Generate CLAUDE.md with appropriate structure
-
-### Step 4: Generate CLAUDE.md
-
-The sub-workflow returns the generated CLAUDE.md content. Write it to the project root.
+Write the generated CLAUDE.md content to the project root.
 
 **Preservation Strategy:**
 
-If `CLAUDE.md` exists, preserve:
+If `CLAUDE.md` exists, the sub-workflow will have already preserved:
 - Custom project description (between title and first `##`)
 - `## Critical Rules`
 - `## Development Notes`
 - Any custom sections not in standard template
 
-## Why Centralized Scanning Is More Reliable
+## Why This Architecture
 
-**Before:** Each sub-workflow scans independently → duplication, inconsistency, maintenance burden
+**Centralized scanning:** Router scans plugins once → single source of truth, consistent matching across all project types.
 
-**After:** Router scans once → single source of truth, consistent matching, easier maintenance
+**Explicit delegation:** Router explicitly reads and delegates to sub-workflow → ensures the sub-workflow is actually followed.

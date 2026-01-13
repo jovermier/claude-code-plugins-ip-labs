@@ -4,7 +4,7 @@ Analyzes the current project and generates or updates the `CLAUDE.md` file with 
 
 ## What It Does
 
-This command follows the **[CLAUDE.md Setup Workflow](../workflows/claude-md-setup.md)** which:
+This command follows the **CLAUDE.md Setup Workflow** which:
 
 1. **Detects project type** - Scans for language-specific files (package.json, Cargo.toml, go.mod, etc.)
 2. **Routes to sub-workflow** - Invokes the appropriate language-specific sub-workflow
@@ -19,18 +19,18 @@ This command follows the **[CLAUDE.md Setup Workflow](../workflows/claude-md-set
 
 ## Supported Project Types
 
-| Project Type | Detected Files | Sub-Workflow |
-|--------------|----------------|--------------|
-| **JavaScript/TypeScript** | `package.json` | `claude-md-setup-javascript.md` |
-| **Python (Poetry)** | `pyproject.toml` | `claude-md-setup-python.md` |
-| **Python (pip)** | `setup.py`, `requirements.txt` | `claude-md-setup-python.md` |
-| **Rust** | `Cargo.toml` | `claude-md-setup-rust.md` |
-| **Go** | `go.mod` | `claude-md-setup-go.md` |
-| **PHP** | `composer.json` | `claude-md-setup-php.md` |
-| **Ruby** | `Gemfile` | `claude-md-setup-ruby.md` |
-| **Java (Maven)** | `pom.xml` | `claude-md-setup-java.md` |
-| **Java (Gradle)** | `build.gradle`, `build.gradle.kts` | `claude-md-setup-java.md` |
-| **Unknown/Generic** | None of the above | `claude-md-setup-generic.md` |
+| Project Type | Detected Files |
+|--------------|----------------|
+| **JavaScript/TypeScript** | `package.json` |
+| **Python (Poetry)** | `pyproject.toml` |
+| **Python (pip)** | `setup.py`, `requirements.txt` |
+| **Rust** | `Cargo.toml` |
+| **Go** | `go.mod` |
+| **PHP** | `composer.json` |
+| **Ruby** | `Gemfile` |
+| **Java (Maven)** | `pom.xml` |
+| **Java (Gradle)** | `build.gradle`, `build.gradle.kts` |
+| **Unknown/Generic** | None of the above |
 
 ## When to Use
 
@@ -203,4 +203,4 @@ cargo clippy         # Lint code
 - **Preserves user content** - Custom sections maintained during updates
 - **Works with any marketplace** - Generic plugin discovery pattern
 
-See the full [workflow documentation](../workflows/claude-md-setup.md) for implementation details.
+See the full workflow documentation in `plugins/dev/workflows/claude-md-setup.md`.
