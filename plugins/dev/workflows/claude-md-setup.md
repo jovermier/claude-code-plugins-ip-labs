@@ -17,12 +17,32 @@ Discover all available plugins by reading the marketplace configuration:
 
 ```bash
 # Find marketplace plugins directory (locations to check):
-# 1. /home/coder/claude-code-plugins-ip-labs/plugins/
-# 2. /home/coder/.claude/plugins/marketplaces/
-# 3. .claude/plugins/ (project-local)
+# 1. ~/.claude/plugins/cache/ - User-level installed marketplace plugins (PRIMARY)
+# 2. ~/claude-code-plugins-ip-labs/plugins/ - Development/local plugins (if present)
+# 3. .claude/plugins/ - Project-local plugins
 
-# For each plugin, read plugin.json
-cat <plugin-path>/.claude-plugin/plugin.json
+# User-level cache structure:
+# ~/.claude/plugins/cache/
+#   └── <marketplace-name>/  # e.g., ip-labs-marketplace
+#       ├── astro/1.0.0/.claude-plugin/plugin.json
+#       ├── nextjs/1.0.0/.claude-plugin/plugin.json
+#       ├── react/1.0.0/.claude-plugin/plugin.json
+#       ├── playwright/1.0.0/.claude-plugin/plugin.json
+#       └── dev/1.1.0/.claude-plugin/plugin.json
+
+# For each marketplace in ~/.claude/plugins/cache/:
+for marketplace in ~/.claude/plugins/cache/*/; do
+  for plugin_dir in "$marketplace"*/; do
+    plugin_json="$plugin_dir/.claude-plugin/plugin.json"
+    skills_dir="$plugin_dir/skills/"
+
+    # Read plugin metadata from plugin.json
+    cat "$plugin_json"
+
+    # Find all skills in this plugin
+    find "$skills_dir" -name "SKILL.md" -path "*/skills/*/SKILL.md"
+  done
+done
 ```
 
 For each plugin, extract:
@@ -38,12 +58,12 @@ For each plugin, extract:
 ```yaml
 # Build a registry like this:
 plugins:
-  - name: [plugin-name]
+  - name: [plugin-name]  # e.g., "nextjs", "playwright", "react"
     description: [what it provides]
     keywords: [tag1, tag2, ...]
     skills:
-      - name: [skill-name-from-directory]
-        path: [full-path-to-skill]
+      - name: [skill-name-from-directory]  # e.g., "latest-nextjs"
+        path: [full-path-to-skill]  # ~/.claude/plugins/cache/marketplace/plugin/version/skills/skill-name/
         description: [from SKILL.md frontmatter]
         updated: [from SKILL.md frontmatter]
         claude_sections: [extracted CLAUDE-specific sections]
@@ -51,6 +71,12 @@ plugins:
         version_context: [extracted version-specific notes]
     commands: [command-path-1, ...]
     workflows: [workflow-path-1, ...]
+
+# Example: ~/.claude/plugins/cache/<marketplace>/nextjs/1.0.0/skills/latest-nextjs/SKILL.md
+# Frontmatter extracted:
+#   name: latest-nextjs
+#   description: Latest Next.js 16 features, App Router, Server Components
+#   updated: 2026-01-11
 ```
 
 ### Step 2: Extract Skill Metadata (CRITICAL)
