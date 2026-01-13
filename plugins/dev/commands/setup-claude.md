@@ -11,10 +11,11 @@ This command follows the enhanced **[CLAUDE.md Setup Workflow](../workflows/clau
 3. **Matches technologies to plugins** - Uses plugin keywords and descriptions
 4. **Extracts skill metadata** - Reads `SKILL.md` frontmatter for descriptions and updates
 5. **Extracts critical rules** - Finds NEVER/MUST/ALWAYS patterns from skill documentation
-6. **Extracts version context** - Captures breaking changes and new features
+6. **Extracts version context** - Captures breaking changes and new features (only for matched skills)
 7. **Extracts CLAUDE-specific sections** - Finds sections marked for CLAUDE.md inclusion
 8. **Resolves template variables** - Resolves `[package-manager]`, `[test-script]`, etc. against project
-9. **Generates comprehensive CLAUDE.md** - Creates or updates with all extracted context
+9. **Generates skill-linked tech stack** - Only versions technologies with relevant skills
+10. **Generates comprehensive CLAUDE.md** - Creates or updates with all extracted context
 
 ## Enhanced Features (New)
 
@@ -52,10 +53,7 @@ The enhanced workflow generates:
 [Project description]
 
 ## Tech Stack
-[Categorized technologies with versions]
-
-## Package Manager
-[Detected package manager]
+[Skill-linked version table - only technologies with relevant skills]
 
 ## Resolved Variables
 [Template variables resolved to project-specific values]
@@ -92,6 +90,20 @@ The enhanced workflow generates:
 ```
 
 ## Example Output
+
+### Tech Stack Table (skill-linked, major.minor only)
+
+```markdown
+## Tech Stack
+
+| Technology | Version | Skill | Purpose |
+|------------|---------|-------|---------|
+| **Next.js** | 16.1 | `latest-nextjs` | App Router, Server Components, async params |
+| **React** | 19.2 | `latest-react` | Compiler, Actions, new hooks |
+| **Playwright** | 1.57 | `playwright-test` | E2E testing, accessibility |
+
+**Note:** Only technologies with relevant skills are shown. See `package.json` for full dependencies.
+```
 
 ### Skills Table (with frontmatter)
 
@@ -154,6 +166,9 @@ npx @next/codemod@canary middleware-to-proxy
 
 ## Notes
 
+- **Skill-linked versioning** - Only technologies with matched skills are versioned in CLAUDE.md
+- **Major.minor precision** - Versions show major.minor only (e.g., `16.1`, not `16.1.1`)
+- **Strong tech-skill linkage** - Tech stack table explicitly links technologies to their skills
 - **Plugin discovery is dynamic** - No technologies are hardcoded
 - **Matching uses keywords** - Plugins matched via `plugin.json` keywords and descriptions
 - **Preserves user content** - Custom sections maintained during updates

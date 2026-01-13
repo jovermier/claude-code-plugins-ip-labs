@@ -153,19 +153,62 @@ ls -la | grep -E "(pnpm-lock|yarn.lock|package-lock|bun.lockb)"
 - From directories: Backend frameworks, testing frameworks
 - From existing `CLAUDE.md`: Custom user content to preserve
 
-**Version Detection:**
+**Version Detection (Skill-Linked):**
 
-When extracting dependencies, capture and report major versions:
+Only extract versions for technologies that have **matched skills**. This creates a strong linkage between detected tech and relevant skills.
 
 ```javascript
-// For each dependency, extract:
-{
-  name: "next",
-  version: "^16.1.1",
-  major: "16",
-  significant: true  // Mark if major version has breaking changes or new features
+// AFTER matching plugins (Step 4), build tech-skill linkage:
+function extractVersionedTech(detectedTech, matchedPlugins) {
+  const versioned = [];
+
+  for (const tech of detectedTech) {
+    // Find if there's a matched skill for this technology
+    const matchedSkill = findSkillForTech(tech, matchedPlugins);
+
+    if (matchedSkill) {
+      const version = parseVersion(tech.version);
+      versioned.push({
+        name: tech.name,
+        displayName: tech.displayName,  // e.g., "Next.js", "React"
+        major: version.major,           // e.g., 16
+        minor: version.minor,           // e.g., 1
+        displayVersion: `${version.major}.${version.minor}`,  // "16.1" - NO patch
+        skill: matchedSkill.name,       // e.g., "latest-nextjs"
+        skillPlugin: matchedSkill.plugin // e.g., "nextjs"
+      });
+    }
+  }
+
+  return versioned;
 }
+
+function parseVersion(versionString) {
+  // Parse semver, return major.minor (skip patch)
+  const clean = versionString.replace(/^[\^~]/, '');  // Remove ^ or ~
+  const parts = clean.split('.');
+  return {
+    major: parts[0] || '0',
+    minor: parts[1] || '0',
+    patch: parts[2] || '0'  // Captured but NOT used in display
+  };
+}
+
+// Example output:
+// [
+//   { name: "next", displayName: "Next.js", major: "16", minor: "1",
+//     displayVersion: "16.1", skill: "latest-nextjs", skillPlugin: "nextjs" },
+//   { name: "react", displayName: "React", major: "19", minor: "1",
+//     displayVersion: "19.1", skill: "latest-react", skillPlugin: "react" }
+// ]
 ```
+
+**Key Principles:**
+
+1. **No skill = no version listed** - If there's no matched skill, the technology is not versioned in CLAUDE.md
+2. **Major.minor only** - Never include patch numbers (e.g., `16.1.1` → `16.1`)
+3. **Skill linkage** - Each versioned tech explicitly links to its relevant skill
+4. **Project relevance** - Only skills matched to the project create version entries
 
 **Detect Package Manager:**
 
@@ -481,29 +524,43 @@ Some variables require more sophisticated detection:
 
 **Detailed Section Templates:**
 
-### Tech Stack Template
+### Tech Stack Template (Skill-Linked)
 
 ```markdown
 ## Tech Stack
 
-### Frontend
-- **[Framework]** [major version] - [brief note if significant changes]
-- **[UI Library]** [version] - [if applicable]
+| Technology | Version | Skill | Purpose |
+|------------|---------|-------|---------|
+| **Next.js** | 16.1 | [`latest-nextjs`](#) | App Router, Server Components, async params |
+| **React** | 19.1 | [`latest-react`](#) | Compiler, Actions, new hooks |
+| **Playwright** | 1.57 | [`playwright-test`](#) | E2E testing, accessibility |
 
-### Backend
-- **[Backend Tech]** [version] - [if applicable]
+**Note:** Only technologies with relevant skills are shown. See `package.json` for full dependencies.
+```
 
-### Database
-- **[Database]** [version] - [if applicable]
+**Template Logic:**
 
-### Testing
-- **[Test Framework]** [version] - [if applicable]
-- **[E2E Framework]** [version] - [if applicable]
+```javascript
+// Generate tech stack table from versioned tech
+function generateTechStackTable(versionedTech) {
+  const rows = versionedTech.map(tech => {
+    return `| **${tech.displayName}** | ${tech.displayVersion} | \`${tech.skill}\` | ${getSkillPurpose(tech.skill)} |`;
+  });
 
-### Tooling
-- **[Build Tool]** [version]
-- **[Linting]** [version]
-- **[Package Manager]** [version]
+  return [
+    '| Technology | Version | Skill | Purpose |',
+    '|------------|---------|-------|---------|',
+    ...rows,
+    '',
+    '**Note:** Only technologies with relevant skills are shown. See `package.json` for full dependencies.'
+  ].join('\n');
+}
+
+function getSkillPurpose(skillName) {
+  // Extract from skill frontmatter or description
+  const skill = findSkill(skillName);
+  return skill?.description || 'See skill docs';
+}
 ```
 
 ### Critical Rules Template
@@ -818,14 +875,25 @@ npx @next/codemod@canary middleware-to-proxy
 
 ### What Makes This Enhanced
 
-1. **Skill frontmatter extraction** - Descriptions and updated dates from SKILL.md
-2. **CLAUDE-specific sections** - Extracted from skills when explicitly marked
-3. **Critical rules aggregation** - NEVER/MUST/ALWAYS patterns from all skills
-4. **Version-aware context** - Breaking changes and new features by version
+1. **Skill-linked versioning** - Only technologies with matched skills are versioned (not full dependency dump)
+2. **Major.minor precision** - Versions show major.minor only (no patch noise)
+3. **Strong tech-skill linkage** - Tech stack table explicitly links technologies to their relevant skills
+4. **Skill frontmatter extraction** - Descriptions and updated dates from SKILL.md
 5. **Template variable resolution** - Resolves `[package-manager]`, `[test-script]`, etc. against project
 6. **Better preservation** - Maintains user-added content during updates
-7. **Comprehensive tech stack** - Categorized with versions
-8. **Quality gates detection** - Auto-discovers validation commands
+7. **Quality gates detection** - Auto-discovers validation commands
+
+### Version Detection Strategy
+
+The workflow intentionally **does NOT** list every dependency. Instead:
+
+1. **Detect all technologies** from package.json, configs, directories
+2. **Match plugins** using keywords and descriptions
+3. **Extract versions ONLY** for matched technologies
+4. **Display major.minor** - Skip patch versions entirely
+5. **Link to skills** - Each tech entry references its relevant skill
+
+This ensures CLAUDE.md focuses on **actionable context** rather than duplicating package.json.
 
 ### Generic Discovery
 
