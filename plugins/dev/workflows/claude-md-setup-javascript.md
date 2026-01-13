@@ -160,6 +160,24 @@ Use `/agents` to list agents or invoke directly:
 
 [Include if the project has local agents defined]
 
+## Available Commands (Slash Commands)
+
+The following slash commands are available from the dev plugin:
+
+| Command | Purpose |
+|---------|---------|
+| `/workflows:plan` | Create structured project plans with parallel research agents |
+| `/workflows:work` | Execute plans with mandatory quality gates and agent scrutiny |
+| `/workflows:review` | Multi-agent parallel code reviews with severity classification |
+| `/workflows:compound` | Document solved problems as knowledge for future reference |
+| `/deepen-plan` | Enhance existing plans with parallel research agents |
+| `/todo` | File-based todo management with YAML frontmatter and dependencies |
+| `/project:new-page` | Create new Astro pages following project conventions |
+| `/project:new-component` | Create new React/Astro components |
+| `/project:new-blog-post` | Create new blog posts following content patterns |
+| `/test-ui` | Run Playwright tests with visual verification |
+| `/skill:from-context7` | Generate skills from Context7 MCP documentation |
+
 ## Commands
 
 ### Development
@@ -212,13 +230,62 @@ Use `/agents` to list agents or invoke directly:
 
 ## Workflows
 
-### [Workflow Name 1]
+### Meta-Workflow (Default)
 
-1. Step one
-2. Step two
-3. Step three
+The **meta-workflow** is the default workflow that auto-routes all requests based on task complexity. It is enforced via the `meta-workflow-enforcer` hook from the dev plugin.
 
-[Core development workflows relevant to the project]
+**Task Type Detection:**
+
+| Request Type | Strategy | Example |
+|--------------|----------|---------|
+| Information queries (ending with `?`) | Direct response | "What does this function do?" |
+| Simple changes ("fix typo", "change word") | Direct execution + quality gates | "Fix typo in heading" |
+| New features | TDD workflow | "Add contact form" |
+| UI/design work | UI-iteration workflow | "Redesign hero section" |
+| Bug fixes | Bug-fix workflow | "Navigation not working" |
+| Complex tasks | Full 7-step meta-workflow | "New e-commerce checkout" |
+
+**The 7-Step Meta-Workflow Process:**
+
+1. **Plan Approach** - Assess task and determine strategy
+2. **Explore** (if needed) - Gather missing context using Glob/Grep
+3. **Plan Solution** (if complex) - Create detailed implementation plan
+4. **Step 3.5: Plan Scrutiny** - Multi-agent validation with P1/P2/P3 severity classification
+5. **Execute** - Implement following the plan
+6. **Quality Gates** - Closed-loop until all pass (typecheck, lint, build, test)
+7. **Implementation Scrutiny** - Multi-agent review of passing code
+8. **Plan Completion** - Two-stage confirmation (user + quality gates)
+
+**Severity Classification:**
+
+- **P1 (Critical)**: Blocks implementation/merge - must fix immediately
+- **P2 (Important)**: Should address - significant gaps or concerns
+- **P3 (Nice-to-Have)**: Consider - minor improvements or optimizations
+
+**Specialized Workflows:**
+
+| Workflow | Purpose | When Triggered |
+|----------|---------|----------------|
+| **tdd-workflow** | Test-driven development | New features, behavior-heavy work |
+| **ui-iteration-workflow** | Iterative UI with visual feedback | Design, styling, visual work |
+| **bug-fix-workflow** | Systematic debugging | Bug fixes, errors, broken functionality |
+
+**Agent Discovery:**
+
+When the meta-workflow launches scrutiny agents, they automatically:
+1. Read `CLAUDE.md` first for project context
+2. Review `.claude/skills/index.md` to discover available skills
+3. Check for specialized agents from installed marketplace plugins
+4. Perform specialized review from their domain expertise perspective
+
+### Using Workflow Commands
+
+For manual control over the workflow process, use these commands:
+
+- `/workflows:plan` - Create structured plans with parallel research agents
+- `/workflows:work` - Execute existing plans with quality gates
+- `/workflows:review` - Run multi-agent parallel code reviews
+- `/deepen-plan` - Enhance plans with additional research
 
 ## Quality Gates
 
@@ -316,6 +383,20 @@ Skills activate automatically based on context. You don't need to invoke them ma
 | `latest-nextjs` | Creating Next.js features | App Router, Server Components, Turbopack |
 | `latest-react` | React component work | React Compiler, Actions, new hooks |
 | `testing-infrastructure` | Running tests | Vitest, Playwright, PM2 test services |
+| `dev:plan-manager` | Managing plans | Plan lifecycle with automatic indexing |
+| `dev:file-todos` | Todo tracking | File-based todos with YAML frontmatter |
+| `dev:quality-severity` | Classifying issues | P1/P2/P3 severity levels |
+
+## Available Commands (Slash Commands)
+
+| Command | Purpose |
+|---------|---------|
+| `/workflows:plan` | Create structured plans with parallel research agents |
+| `/workflows:work` | Execute plans with quality gates and scrutiny |
+| `/workflows:review` | Multi-agent parallel code reviews |
+| `/workflows:compound` | Document learnings as knowledge |
+| `/deepen-plan` | Enhance plans with research |
+| `/todo` | File-based todo management |
 
 ## Commands
 
@@ -357,6 +438,32 @@ pnpm test:e2e         # Run E2E tests
 | **Frontend** | [apps/web/AI_DOCUMENTATION_INDEX.md](apps/web/AI_DOCUMENTATION_INDEX.md) |
 
 ## Workflows
+
+### Meta-Workflow (Default)
+
+The **meta-workflow** auto-routes requests based on task complexity:
+
+| Request Type | Strategy |
+|--------------|----------|
+| Information queries (`?`) | Direct response |
+| Simple changes | Direct execution + quality gates |
+| New features | TDD workflow |
+| Bug fixes | Bug-fix workflow |
+| Complex tasks | Full 7-step meta-workflow |
+
+**The 7-Step Process:**
+1. Plan Approach - Determine strategy
+2. Explore (if needed) - Gather context
+3. Plan Solution (if complex) - Create implementation plan
+4. Plan Scrutiny - Multi-agent validation (P1/P2/P3)
+5. Execute - Implement following plan
+6. Quality Gates - Closed-loop until pass
+7. Implementation Scrutiny - Multi-agent review
+8. Plan Completion - Two-stage confirmation
+
+**Severity:** P1 (Critical) - P2 (Important) - P3 (Nice-to-Have)
+
+**Project-Specific Workflows:**
 
 ### Creating a GraphQL Operation
 

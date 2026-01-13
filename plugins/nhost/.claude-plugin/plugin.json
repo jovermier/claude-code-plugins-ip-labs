@@ -1,0 +1,21 @@
+{
+  "name": "nhost",
+  "description": "Skills and commands for Nhost self-hosted development, including Hasura CLI in Docker, backend health checks, and database migrations with cross-environment PostgreSQL extension patterns.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs/tree/main/plugins/nhost",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "postgresql",
+    "docker",
+    "self-hosted",
+    "migrations",
+    "graphql"
+  ]
+}

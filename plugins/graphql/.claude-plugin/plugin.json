@@ -1,0 +1,22 @@
+{
+  "name": "graphql",
+  "description": "Role-based GraphQL workflow with automatic code generation, file naming conventions, and best practices for GraphQL operations with codegen.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Innovative Prospects",
+    "url": "https://github.com/jovermier"
+  },
+  "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs/tree/main/plugins/graphql",
+  "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
+  "license": "MIT",
+  "keywords": [
+    "graphql",
+    "codegen",
+    "codegen-ts",
+    "hasura",
+    "apollo",
+    "role-based",
+    "typescript",
+    "type-safety"
+  ]
+}

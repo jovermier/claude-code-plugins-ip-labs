@@ -214,7 +214,47 @@ function resolveVariable(variableName, project) {
 [Extracted CLAUDE-specific sections from skills]
 
 ## Workflows
-[Core dev workflows + any from matched plugins]
+
+### Meta-Workflow (Default)
+
+The **meta-workflow** is the default workflow that auto-routes all requests based on task complexity. It is enforced via the `meta-workflow-enforcer` hook from the dev plugin.
+
+**Task Type Detection:**
+
+| Request Type | Strategy | Example |
+|--------------|----------|---------|
+| Information queries (ending with `?`) | Direct response | "What does this function do?" |
+| Simple changes ("fix typo", "change word") | Direct execution + quality gates | "Fix typo in heading" |
+| New features | TDD workflow | "Add new endpoint" |
+| Bug fixes | Bug-fix workflow | "Fix authentication bug" |
+| Complex tasks | Full 7-step meta-workflow | "Add new feature with tests" |
+
+**The 7-Step Meta-Workflow Process:**
+
+1. **Plan Approach** - Assess task and determine strategy
+2. **Explore** (if needed) - Gather missing context
+3. **Plan Solution** (if complex) - Create implementation plan
+4. **Step 3.5: Plan Scrutiny** - Multi-agent validation with P1/P2/P3 severity
+5. **Execute** - Implement following the plan
+6. **Quality Gates** - Closed-loop until all pass
+7. **Implementation Scrutiny** - Multi-agent review
+8. **Plan Completion** - Two-stage confirmation
+
+**Severity Classification:**
+- **P1 (Critical)**: Blocks implementation/merge
+- **P2 (Important)**: Should address
+- **P3 (Nice-to-Have)**: Consider
+
+**Available Workflow Commands:**
+
+| Command | Purpose |
+|---------|---------|
+| `/workflows:plan` | Create structured plans with parallel research |
+| `/workflows:work` | Execute plans with quality gates |
+| `/workflows:review` | Multi-agent parallel code reviews |
+| `/workflows:compound` | Document learnings as knowledge |
+| `/deepen-plan` | Enhance plans with research |
+| `/todo` | File-based todo management |
 
 ## Commands
 [All relevant commands]
