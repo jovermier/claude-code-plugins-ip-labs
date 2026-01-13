@@ -2,6 +2,18 @@
 
 Generates `CLAUDE.md` for JavaScript/TypeScript projects (Node.js, Next.js, React, Vue, etc.).
 
+## ⚠️ CRITICAL EXECUTION INSTRUCTIONS
+
+**THIS IS NOT DOCUMENTATION - THESE ARE STEPS YOU MUST ACTUALLY EXECUTE**
+
+When following this workflow:
+1. **YOU MUST EXECUTE THE BASH COMMANDS** shown in each step
+2. **YOU MUST READ THE FILES** that the commands discover
+3. **YOU MUST EXTRACT METADATA** from discovered plugins and skills
+4. **YOU MUST USE THE EXTRACTED DATA** to generate the CLAUDE.md
+
+Do NOT treat the code blocks in this workflow as illustrative examples. They are **mandatory execution steps**.
+
 ## When to Use This Sub-Workflow
 
 - Invoked by `claude-md-setup.md` when `package.json` is detected
@@ -10,39 +22,54 @@ Generates `CLAUDE.md` for JavaScript/TypeScript projects (Node.js, Next.js, Reac
 
 ## The Workflow
 
-### Step 1: Scan Marketplace Plugins
+### Step 1: Scan Marketplace Plugins (CRITICAL - MUST EXECUTE)
 
-Discover all available plugins by reading the marketplace configuration:
+**YOU MUST ACTUALLY EXECUTE THESE COMMANDS** to discover all available plugins. This is not illustrative - these are mandatory discovery steps.
+
+**MUST SCAN IN THIS ORDER:**
+
+1. **PRIMARY**: `~/.claude/plugins/cache/` - User-level installed marketplace plugins
+2. **SECONDARY**: `~/claude-code-plugins-ip-labs/plugins/` - Development/local plugins (if present)
+3. **TERTIARY**: `.claude/plugins/` - Project-local plugins
 
 ```bash
-# Find marketplace plugins directory (locations to check):
-# 1. ~/.claude/plugins/cache/ - User-level installed marketplace plugins (PRIMARY)
-# 2. ~/claude-code-plugins-ip-labs/plugins/ - Development/local plugins (if present)
-# 3. .claude/plugins/ - Project-local plugins
+# ACTUAL COMMANDS YOU MUST RUN:
 
-# User-level cache structure:
+# 1. Check if user-level plugin cache exists
+ls -la ~/.claude/plugins/cache/ 2>/dev/null || echo "No user plugin cache"
+
+# 2. Find all plugin.json files in user-level cache
+find ~/.claude/plugins/cache/ -name "plugin.json" 2>/dev/null
+
+# 3. For each marketplace in ~/.claude/plugins/cache/, list plugins
+for marketplace in ~/.claude/plugins/cache/*/; do
+  echo "Marketplace: $marketplace"
+  find "$marketplace" -name "plugin.json" -exec echo "  Plugin: {}" \;
+done
+
+# Expected output structure:
 # ~/.claude/plugins/cache/
-#   └── <marketplace-name>/  # e.g., ip-labs-marketplace
+#   └── ip-labs-marketplace/
 #       ├── astro/1.0.0/.claude-plugin/plugin.json
 #       ├── nextjs/1.0.0/.claude-plugin/plugin.json
 #       ├── react/1.0.0/.claude-plugin/plugin.json
 #       ├── playwright/1.0.0/.claude-plugin/plugin.json
-#       └── dev/1.1.0/.claude-plugin/plugin.json
+#       └── dev/1.2.0/.claude-plugin/plugin.json
 
-# For each marketplace in ~/.claude/plugins/cache/:
-for marketplace in ~/.claude/plugins/cache/*/; do
-  for plugin_dir in "$marketplace"*/; do
-    plugin_json="$plugin_dir/.claude-plugin/plugin.json"
-    skills_dir="$plugin_dir/skills/"
+# 4. Find all SKILL.md files in user-level cache
+find ~/.claude/plugins/cache/ -name "SKILL.md" 2>/dev/null
 
-    # Read plugin metadata from plugin.json
-    cat "$plugin_json"
+# 5. Check dev plugins directory
+find ~/claude-code-plugins-ip-labs/plugins/ -name "plugin.json" 2>/dev/null
 
-    # Find all skills in this plugin
-    find "$skills_dir" -name "SKILL.md" -path "*/skills/*/SKILL.md"
-  done
-done
+# 6. Check project-local plugins
+find .claude/ -name "SKILL.md" -path "*/skills/*/SKILL.md" 2>/dev/null
 ```
+
+**For EACH plugin.json found, YOU MUST:**
+1. Read the `plugin.json` file to extract: `name`, `description`, `keywords`, `version`
+2. Find all `SKILL.md` files in that plugin's `skills/` directory
+3. For each `SKILL.md`, read the frontmatter (between `---` markers) to extract: `name`, `description`, `updated`
 
 For each plugin, extract:
 - **Plugin name** - From `name` field
@@ -68,9 +95,16 @@ plugins:
         version_context: [extracted version-specific notes]
 ```
 
-### Step 2: Extract Skill Metadata
+**IMPORTANT**: After building this registry, YOU MUST use it to:
+1. Match detected technologies (from package.json) to plugin keywords
+2. Only version technologies that have matching skills
+3. Include the `Skill` column in the Tech Stack table with the skill name
 
-For EACH skill discovered, read its `SKILL.md` file and extract:
+### Step 2: Extract Skill Metadata (MUST READ EACH SKILL)
+
+**YOU MUST READ EACH SKILL.md FILE FOUND IN STEP 1** - Do not skip this step.
+
+For EACH skill discovered in Step 1, read its `SKILL.md` file and extract:
 
 **Frontmatter Fields:**
 ```yaml
@@ -294,7 +328,7 @@ function findScript(type, packageJson) {
 
 ## Example Output
 
-### Tech Stack Table
+### Tech Stack Table (WITH SKILL COLUMN - REQUIRED)
 
 ```markdown
 ## Tech Stack
@@ -305,6 +339,8 @@ function findScript(type, packageJson) {
 | **React** | 19.2 | `latest-react` | Compiler, Actions, new hooks |
 | **Playwright** | 1.57 | `playwright-test` | E2E testing, accessibility |
 ```
+
+**CRITICAL**: The `Skill` column MUST be included for technologies that have matching marketplace plugins. This links the technology to its specialized skill.
 
 ### Resolved Variables
 
