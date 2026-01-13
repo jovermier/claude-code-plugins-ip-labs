@@ -205,6 +205,15 @@ Run these commands after making changes to verify code quality:
 
 *Note: Package manager is detected automatically from lockfiles. Scripts are extracted from package.json.*
 
+## Git & Commit Conventions
+
+When creating commits and pull requests for this project:
+
+- **Commit messages**: Do NOT include author names in commit descriptions (use `git commit` without `--author` flag)
+- **Commit format**: Focus on the "what" and "why" rather than "who"
+- **PR descriptions**: Describe changes clearly without attributing authorship
+- **Co-authorship**: Only attribute human collaborators; never include LLMs, AI tools, or automated systems in `Co-Authored-By:` trailers
+
 ## Development Notes
 
 [Any project-specific conventions, patterns, or notes - leave this section empty or add a placeholder if none detected]

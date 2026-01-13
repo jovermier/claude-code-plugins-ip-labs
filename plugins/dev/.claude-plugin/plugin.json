@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "description": "Core development workflows, hooks, and commands for Innovative Prospects projects. Meta-workflow, TDD, UI iteration, bug fixing, and project management.",
-  "version": "1.0.0",
+  "description": "Core development workflows, agents, commands, and skills for Innovative Prospects projects. Features 13 specialized agents (9 review + 4 research), parallel workflow orchestration, file-based todo system, quality gate severity levels (P1/P2/P3), and knowledge compounding.",
+  "version": "1.1.0",
   "author": {
     "name": "Innovative Prospects",
     "url": "https://github.com/jovermier"
@@ -11,6 +11,7 @@
   "license": "MIT",
   "keywords": [
     "workflows",
+    "agents",
     "tdd",
     "ui-iteration",
     "bug-fix",
@@ -18,6 +19,9 @@
     "commands",
     "hooks",
     "project-management",
-    "development"
+    "development",
+    "code-review",
+    "quality-gates",
+    "todos"
   ]
 }

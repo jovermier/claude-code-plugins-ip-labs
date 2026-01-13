@@ -1,4 +1,4 @@
-# IP (Innovative Prospects) Labs Marketplace
+# IP Labs Marketplace
 
 Claude Code marketplace for Innovative Prospects development workflows covering React, Astro, Next.js, Convex, and Playwright.
 
@@ -17,12 +17,15 @@ This marketplace provides **7 plugins** following the **Every marketplace method
 ### Core Development
 
 #### dev
+
 Core development workflows, hooks, and commands.
 
 **Skills:**
+
 - `plan-manager` - Manage workflow plans and context documents
 
 **Workflows:**
+
 - `meta-workflow` - Automatic workflow selection and composition
 - `tdd-workflow` - Test-driven development
 - `ui-iteration-workflow` - Iterative UI development with visual feedback
@@ -30,6 +33,7 @@ Core development workflows, hooks, and commands.
 - `claude-md-setup` - Generate or update CLAUDE.md from marketplace plugins
 
 **Commands:**
+
 - `/project:setup` - Analyze project and generate/update CLAUDE.md
 - `/project:new-page` - Create new Astro pages
 - `/project:new-component` - Create React/Astro components
@@ -37,43 +41,54 @@ Core development workflows, hooks, and commands.
 - `/project:test-ui` - Run Playwright tests
 
 **Hooks:**
+
 - `auto-archive-plans.py` - Automatically archive completed plans
 - `meta-workflow-enforcer.py` - Enforce meta-workflow on every request
 
 ### Environment
 
 #### coder
+
 Coder workspace environment skills.
 
 **Skills:**
+
 - `coder-environment` - Coder workspace context, Docker-in-Docker, Kubernetes CLI
 
 ### Framework Skills
 
 #### astro
+
 Astro development skills.
 
 **Skills:**
+
 - `latest-astro` - Astro v4-v5 features, islands, content collections
 
 #### react
+
 React development skills.
 
 **Skills:**
+
 - `latest-react` - React 19, React Compiler, new hooks, actions
 
 #### nextjs
+
 Next.js development skills.
 
 **Skills:**
+
 - `latest-nextjs` - Next.js App Router, Server Components, performance
 
 ### Backend
 
 #### convex
+
 Convex development in Coder workspaces.
 
 **Skills:**
+
 - `coder-convex` - Convex integration patterns
 - `coder-convex-setup` - Convex setup and configuration
 - `convex-chef` - Convex Chef agent integration
@@ -81,22 +96,24 @@ Convex development in Coder workspaces.
 ### Testing
 
 #### playwright
+
 Playwright E2E testing skills.
 
 **Skills:**
+
 - `playwright-test` - E2E testing patterns, fixtures, best practices
 
 ## Quick Reference
 
-| Plugin | Skills | Commands | Hooks |
-|--------|--------|----------|-------|
-| dev | plan-manager | 5 commands | 2 hooks |
-| coder | coder-environment | - | - |
-| astro | latest-astro | - | - |
-| react | latest-react | - | - |
-| nextjs | latest-nextjs | - | - |
-| convex | 3 skills | - | - |
-| playwright | playwright-test | - | - |
+| Plugin     | Skills            | Commands   | Hooks   |
+| ---------- | ----------------- | ---------- | ------- |
+| dev        | plan-manager      | 5 commands | 2 hooks |
+| coder      | coder-environment | -          | -       |
+| astro      | latest-astro      | -          | -       |
+| react      | latest-react      | -          | -       |
+| nextjs     | latest-nextjs     | -          | -       |
+| convex     | 3 skills          | -          | -       |
+| playwright | playwright-test   | -          | -       |
 
 ## Usage
 
@@ -111,6 +128,7 @@ Use the `/project:setup` command to generate a CLAUDE.md file tailored to your p
 ```
 
 This will:
+
 1. Scan your `package.json` for dependencies
 2. Match technologies to marketplace plugins
 3. Generate a CLAUDE.md with relevant skills, workflows, and commands

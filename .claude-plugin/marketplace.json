@@ -1,41 +1,23 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ip-labs-marketplace",
+  "description": "Claude Code marketplace for Innovative Prospects development workflows covering React, Astro, Next.js, Convex, and Playwright. Includes 13 specialized review/research agents, parallel workflow commands, file-based todo system, and quality gate severity classification.",
   "owner": {
     "name": "Innovative Prospects",
     "url": "https://github.com/jovermier"
   },
-  "metadata": {
-    "description": "Claude Code marketplace for Innovative Prospects development workflows covering React, Astro, Next.js, Convex, and Playwright",
-    "version": "1.0.0"
-  },
   "plugins": [
     {
       "name": "dev",
-      "description": "Core development workflows, hooks, and commands for Innovative Prospects projects. Meta-workflow, TDD, UI iteration, bug fixing, and project management.",
-      "version": "1.0.0",
+      "description": "Core development workflows, agents, commands, and skills for Innovative Prospects projects. Features 13 specialized agents (9 review + 4 research), parallel workflow orchestration, file-based todo system, quality gate severity levels (P1/P2/P3), and knowledge compounding.",
+      "version": "1.1.0",
       "author": {
         "name": "Innovative Prospects",
         "url": "https://github.com/jovermier"
       },
       "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "license": "MIT",
-      "tags": ["workflows", "tdd", "ui-iteration", "bug-fix", "meta-workflow", "commands", "hooks", "project-management", "development"],
-      "source": "./plugins/dev",
-      "commands": [
-        "./commands/setup-claude.md",
-        "./commands/new-page.md",
-        "./commands/new-component.md",
-        "./commands/new-blog-post.md",
-        "./commands/test-ui.md"
-      ],
-      "hooks": [
-        "./hooks/auto-archive-plans.py",
-        "./hooks/meta-workflow-enforcer.py"
-      ],
-      "skills": [
-        "./skills/plan-manager"
-      ]
+      "category": "development",
+      "source": "./plugins/dev"
     },
     {
       "name": "coder",
@@ -46,11 +28,8 @@
         "url": "https://github.com/jovermier"
       },
       "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "license": "MIT",
-      "tags": ["coder", "workspace", "development-environment", "docker", "kubernetes", "linux", "container-runtime"],
-      "source": "./plugins/coder",
-      "skills": ["./skills/coder-environment"]
+      "category": "development",
+      "source": "./plugins/coder"
     },
     {
       "name": "astro",
@@ -61,11 +40,8 @@
         "url": "https://github.com/jovermier"
       },
       "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "license": "MIT",
-      "tags": ["astro", "static-site-generator", "components", "content-collections", "islands", "skills"],
-      "source": "./plugins/astro",
-      "skills": ["./skills/latest-astro"]
+      "category": "development",
+      "source": "./plugins/astro"
     },
     {
       "name": "react",
@@ -76,11 +52,8 @@
         "url": "https://github.com/jovermier"
       },
       "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "license": "MIT",
-      "tags": ["react", "react-19", "react-compiler", "hooks", "components", "skills"],
-      "source": "./plugins/react",
-      "skills": ["./skills/latest-react"]
+      "category": "development",
+      "source": "./plugins/react"
     },
     {
       "name": "nextjs",
@@ -91,11 +64,8 @@
         "url": "https://github.com/jovermier"
       },
       "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "license": "MIT",
-      "tags": ["nextjs", "app-router", "server-components", "server-actions", "react", "skills"],
-      "source": "./plugins/nextjs",
-      "skills": ["./skills/latest-nextjs"]
+      "category": "development",
+      "source": "./plugins/nextjs"
     },
     {
       "name": "convex",
@@ -106,15 +76,8 @@
         "url": "https://github.com/jovermier"
       },
       "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "license": "MIT",
-      "tags": ["convex", "backend", "database", "realtime", "self-hosted", "coder-workspace", "rag", "skills"],
-      "source": "./plugins/convex",
-      "skills": [
-        "./skills/coder-convex",
-        "./skills/coder-convex-setup",
-        "./skills/convex-chef"
-      ]
+      "category": "development",
+      "source": "./plugins/convex"
     },
     {
       "name": "playwright",
@@ -125,11 +88,8 @@
         "url": "https://github.com/jovermier"
       },
       "homepage": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "repository": "https://github.com/jovermier/claude-code-plugins-ip-labs",
-      "license": "MIT",
-      "tags": ["playwright", "e2e-testing", "testing", "test-automation", "accessibility", "skills"],
-      "source": "./plugins/playwright",
-      "skills": ["./skills/playwright-test"]
+      "category": "testing",
+      "source": "./plugins/playwright"
     }
   ]
 }

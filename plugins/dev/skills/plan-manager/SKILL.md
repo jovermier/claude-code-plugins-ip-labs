@@ -137,8 +137,37 @@ status: planning|in_progress|blocked|completed|archived
 workflow: tdd|ui-iteration|bug-fix
 related_context:
   - auth--context.md
+priority: p1|p2|p3   # P1=Critical, P2=Important, P3=Nice-to-Have
+quality_gates_passed: false  # Set to true when all quality gates pass
+scrutiny:            # Added after plan scrutiny (Step 3.5)
+  p1_findings: 0
+  p2_findings: 0
+  p3_findings: 0
+  confidence_score: 95
 ---
 ```
+
+**Severity Classification (P1/P2/P3):**
+
+See the `quality-severity` skill for detailed classification guidelines:
+
+- **P1 (Critical)**: Blocks implementation - must be addressed before proceeding
+  - Security vulnerabilities
+  - Data corruption risks
+  - Breaking changes
+  - Missing critical context
+
+- **P2 (Important)**: Should address - significant issues that impact quality
+  - Performance concerns
+  - Architectural issues
+  - Code clarity problems
+  - Missing edge cases
+
+- **P3 (Nice-to-Have)**: Consider addressing - improvements and optimizations
+  - Code cleanup
+  - Minor optimizations
+  - Documentation improvements
+  - Style consistency
 
 ### Context Document
 ```yaml

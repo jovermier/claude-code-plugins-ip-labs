@@ -26,6 +26,9 @@ Ask:
 | ----------------- | --------------------------------------- | ----------------------------- |
 | "What does X do?" | Direct response (information query)     | "What does this function do?" |
 | "Fix typo"        | Direct execution                        | "Fix typo in heading"         |
+| "Plan X"          | Use /workflows:plan with parallel research | "Plan JWT auth system"     |
+| "Work this plan"  | Use /workflows:work with quality gates   | Execute structured plan      |
+| "Review code"     | Use /workflows:review parallel agents   | "Review my PR"                |
 | "New feature"     | Select workflow(s) - TDD + UI-iteration | "Add contact form"            |
 | "Bug fix"         | Use bug-fix-workflow                    | "Navigation not working"      |
 | "UI work"         | Use ui-iteration-workflow               | "Redesign hero section"       |
@@ -115,25 +118,64 @@ Before proceeding to execution, validate the plan using multiple specialized sub
 Each agent MUST be instructed to:
 1. First read the full `CLAUDE.md` file at the project root
 2. Review the **Skills Index** at `.claude/skills/index.md` to discover available skills
-3. Then read the relevant workflow file(s)
-4. Then perform their specialized review (invoking skills as needed)
+3. Check for **available specialized agents** from installed marketplace plugins
+4. Then read the relevant workflow file(s)
+5. Then perform their specialized review (invoking skills as needed)
+
+**Agent Discovery:**
+
+First, check what review agents are available from installed plugins. If specialized agents exist (e.g., from the dev plugin), use them. Otherwise, fall back to generic prompts.
+
+**How to discover agents programmatically:**
+
+1. **Check marketplace.json** for installed plugins and their agents:
+   ```bash
+   # Read .claude-plugin/marketplace.json to find installed plugins
+   # Each plugin lists its agents in the "agents" array
+   ```
+
+2. **Check plugin directories** for agent definitions:
+   ```bash
+   # Look for SKILL.md files in:
+   plugins/*/agents/review/*/SKILL.md
+   plugins/*/agents/research/*/SKILL.md
+   ```
+
+3. **Use Glob tool** to find available agents:
+   ```
+   Glob pattern: plugins/*/agents/**/SKILL.md
+   ```
+
+4. **Read agent SKILL.md** to verify the agent exists and get its instructions
 
 ```bash
-# Launch multiple specialized review agents in parallel
-# Each agent scrutinizes the plan from a different perspective
-# AGENT PROMPT TEMPLATE:
-# "First, read the CLAUDE.md file at the project root to understand
-#  the full project context, conventions, and guidelines.
-#  Then review .claude/skills/index.md to discover available skills.
-#  Then perform your review as:"
+# Check for available review agents by examining installed plugins
+# Look for agents/ directories in plugin structures
 
+# If specialized agents ARE available, use them for plan scrutiny:
+Agent 1 (or architecture-strategist if available)
+Agent 2 (or security-sentinel if available)
+Agent 3 (or performance-oracle if available)
+Agent 4 (or pattern-recognition-specialist if available)
+Agent 5 (or repo-research-analyst if available)
+
+# If specialized agents are NOT available, use generic prompts:
+Agent 1: Context Completeness Reviewer
+Agent 2: Edge Case Analyzer
+Agent 3: Architecture & Patterns Reviewer
+Agent 4: Risk Assessment Reviewer
+```
+
+**Generic Fallback Prompts** (use when specialized agents unavailable):
+
+```bash
 Agent 1: Context Completeness Reviewer
   INSTRUCTION: "First read CLAUDE.md. Then review .claude/skills/index.md. Then review the plan for:
   - Was the explore step thorough?
   - Are there gaps in our understanding of the codebase?
   - Did we miss relevant files, patterns, or dependencies?
   - Are context documents accurate and complete?
-  - Use relevant skills (e.g., plan-manager) for deeper analysis if needed."
+  - Use relevant skills (e.g., plan-manager, quality-severity) for deeper analysis if needed."
 
 Agent 2: Edge Case Analyzer
   INSTRUCTION: "First read CLAUDE.md. Then review .claude/skills/index.md. Then review the plan for:
@@ -160,19 +202,47 @@ Agent 4: Risk Assessment Reviewer
   - Use playwright-test skill for test strategy review if needed."
 ```
 
+**Specialized Agent Instructions** (when available):
+
+When specialized agents are discovered, instruct each to:
+
+```bash
+AGENT_TEMPLATE: "First read CLAUDE.md. Then review .claude/skills/index.md to discover available skills.
+Then perform your specialized review of this plan from your domain expertise perspective.
+Classify all findings using P1/P2/P3 severity (see quality-severity skill)."
+```
+
+**Severity Classification:**
+
+All findings MUST be classified using P1/P2/P3 severity levels (see `quality-severity` skill if available):
+
+- **P1 (Critical)**: Blocks implementation - fundamental flaws, missing critical context
+- **P2 (Important)**: Should address - significant gaps, risky approaches
+- **P3 (Nice-to-Have)**: Consider addressing - minor improvements, optimizations
+
 **Scrutiny Process:**
 
-1. Each agent independently reviews the plan document
-2. Agents provide specific findings with:
-   - **Severity**: Critical / High / Medium / Low
+1. Discover available agents from installed marketplace plugins
+2. Launch available agents in parallel using Task tool (or use generic fallback)
+3. Each agent independently reviews the plan document
+4. Agents provide specific findings with:
+   - **Severity**: P1 (Critical) / P2 (Important) / P3 (Nice-to-Have) [or Critical/High/Medium/Low if quality-severity unavailable]
+   - **Category**: Architecture / Security / Performance / Patterns / Exploration
    - **Finding**: Description of concern
    - **Recommendation**: Specific action to address
    - **Confidence Score**: 0-100% on plan viability
-3. Aggregate findings and address any Critical/High severity issues
-4. Update plan document with scrutiny results in `scrutiny:` section
-5. Get final user approval if significant changes were made
+5. Aggregate findings by severity
+6. Address all P1 findings before proceeding
+7. Address P2 findings if time permits
+8. Note P3 findings for future consideration
+9. Update plan document with scrutiny results in `scrutiny:` section including:
+   - `p1_findings: N`
+   - `p2_findings: N`
+   - `p3_findings: N`
+   - `confidence_score: XX`
+10. Get final user approval if P1 issues were addressed
 
-**Output:** Validated plan with scrutiny findings + confidence scores OR refined plan
+**Output:** Validated plan with severity-classified findings + confidence scores OR refined plan
 
 ---
 
@@ -278,18 +348,62 @@ After quality gates pass, validate the implementation using multiple specialized
 Each agent MUST be instructed to:
 1. First read the full `CLAUDE.md` file at the project root
 2. Review the **Skills Index** at `.claude/skills/index.md` to discover available skills
-3. Then read the relevant workflow file(s)
-4. Then perform their specialized review (invoking skills as needed)
+3. Check for **available specialized agents** from installed marketplace plugins
+4. Then read the relevant workflow file(s)
+5. Then perform their specialized review (invoking skills as needed)
+
+**Agent Discovery:**
+
+First, check what review agents are available from installed plugins. If specialized agents exist (e.g., from the dev plugin), use them. Otherwise, fall back to generic prompts.
+
+**How to discover agents programmatically:**
+
+1. **Check marketplace.json** for installed plugins and their agents:
+   ```bash
+   # Read .claude-plugin/marketplace.json to find installed plugins
+   # Each plugin lists its agents in the "agents" array
+   ```
+
+2. **Check plugin directories** for agent definitions:
+   ```bash
+   # Look for SKILL.md files in:
+   plugins/*/agents/review/*/SKILL.md
+   plugins/*/agents/research/*/SKILL.md
+   ```
+
+3. **Use Glob tool** to find available agents:
+   ```
+   Glob pattern: plugins/*/agents/**/SKILL.md
+   ```
+
+4. **Read agent SKILL.md** to verify the agent exists and get its instructions
 
 ```bash
-# Launch multiple specialized review agents in parallel
-# Each agent scrutinizes the implementation from a different perspective
-# AGENT PROMPT TEMPLATE:
-# "First, read the CLAUDE.md file at the project root to understand
-#  the full project context, conventions, and guidelines.
-#  Then review .claude/skills/index.md to discover available skills.
-#  Then perform your review as:"
+# Check for available review agents by examining installed plugins
+# Look for agents/ directories in plugin structures
 
+# If specialized agents ARE available, use them for implementation scrutiny:
+Agent 1 (or architecture-strategist if available)
+Agent 2 (or security-sentinel if available)
+Agent 3 (or performance-oracle if available)
+Agent 4 (or code-simplicity-reviewer if available)
+Agent 5 (or agent-native-reviewer if available)
+Agent 6 (or pattern-recognition-specialist if available)
+Agent 7 (or data-integrity-guardian if available)
+Agent 8 (or julik-frontend-races-reviewer if available)
+Agent 9 (or deployment-verification-agent if available - only for production changes)
+
+# If specialized agents are NOT available, use generic prompts:
+Agent 1: Code Quality Reviewer
+Agent 2: Edge Case & Error Handling Reviewer
+Agent 3: Integration & Regression Reviewer
+Agent 4: Testing & Documentation Reviewer
+Agent 5: Security & Performance Reviewer
+```
+
+**Generic Fallback Prompts** (use when specialized agents unavailable):
+
+```bash
 Agent 1: Code Quality Reviewer
   INSTRUCTION: "First read CLAUDE.md. Then review .claude/skills/index.md. Then review the implementation for:
   - Does this code follow project conventions in CLAUDE.md?
@@ -336,24 +450,51 @@ Agent 5: Security & Performance Reviewer
   - Use relevant skills for framework-specific security patterns if needed."
 ```
 
+**Specialized Agent Instructions** (when available):
+
+When specialized agents are discovered, instruct each to:
+
+```bash
+AGENT_TEMPLATE: "First read CLAUDE.md. Then review .claude/skills/index.md to discover available skills.
+Then perform your specialized review of this implementation from your domain expertise perspective.
+Classify all findings using P1/P2/P3 severity (see quality-severity skill)."
+```
+
+**Severity Classification:**
+
+All findings MUST be classified using P1/P2/P3 severity levels (see `quality-severity` skill if available):
+
+- **P1 (Critical)**: Blocks merge - security vulnerabilities, data corruption, breaking changes
+- **P2 (Important)**: Should fix - performance issues, architectural concerns, code clarity
+- **P3 (Nice-to-Have)**: Enhancement - code cleanup, optimizations, documentation
+
 **Scrutiny Process:**
 
-1. Each agent independently reviews all changed files
-2. Agents provide specific findings with:
-   - **Severity**: Critical / High / Medium / Low
+1. Discover available agents from installed marketplace plugins
+2. Launch available agents in parallel using Task tool (or use generic fallback)
+3. Each agent independently reviews all changed files
+4. Agents provide specific findings with:
+   - **Severity**: P1 (Critical) / P2 (Important) / P3 (Nice-to-Have) [or Critical/High/Medium/Low if quality-severity unavailable]
    - **File**: Affected file path
    - **Line**: Specific line reference
    - **Finding**: Description of concern
    - **Recommendation**: Specific action to address
    - **Confidence Score**: 0-100% on implementation quality
-3. Aggregate findings and address any Critical/High severity issues
-4. If Critical/High issues found:
+5. Aggregate findings by severity
+6. Address all P1 findings before completion
+7. Address P2 findings if time permits
+8. Note P3 findings for future consideration
+9. If P1 or P2 issues found:
    - Fix them
    - Re-run quality gates (Step 5) - loop back
    - Re-run scrutiny (Step 6) - loop back
-5. Update plan document with scrutiny results in `scrutiny:` section
+10. Update plan document with scrutiny results in `scrutiny:` section including:
+    - `p1_findings: N`
+    - `p2_findings: N`
+    - `p3_findings: N`
+    - `confidence_score: XX`
 
-**Output:** Validated implementation with scrutiny findings + confidence scores
+**Output:** Validated implementation with severity-classified findings + confidence scores
 
 ---
 
@@ -476,11 +617,15 @@ Step 7: Plan completion - Two-stage confirmation:
 
 ### Available Workflows to Compose
 
-| Workflow         | When to Use             | File                                         |
-| ---------------- | ----------------------- | -------------------------------------------- |
-| **TDD**          | Behavior-heavy features | `.claude/workflows/tdd-workflow.md`          |
-| **UI Iteration** | Visual/design work      | `.claude/workflows/ui-iteration-workflow.md` |
-| **Bug Fix**      | Debugging issues        | `.claude/workflows/bug-fix-workflow.md`      |
+| Workflow            | When to Use                           | File                                         |
+| ------------------- | ------------------------------------- | -------------------------------------------- |
+| **/workflows:plan** | Create structured project plans       | `plugins/dev/commands/workflows/plan.md`     |
+| **/workflows:work** | Execute plans with quality gates      | `plugins/dev/commands/workflows/work.md`     |
+| **/workflows:review** | Multi-agent parallel code review   | `plugins/dev/commands/workflows/review.md`   |
+| **/deepen-plan**    | Enhance existing plans with research  | `plugins/dev/commands/deepen-plan.md`        |
+| **TDD**             | Behavior-heavy features               | `.claude/workflows/tdd-workflow.md`          |
+| **UI Iteration**    | Visual/design work                    | `.claude/workflows/ui-iteration-workflow.md` |
+| **Bug Fix**         | Debugging issues                      | `.claude/workflows/bug-fix-workflow.md`      |
 
 ### Quality Gates Commands
 

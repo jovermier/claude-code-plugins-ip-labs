@@ -1,37 +1,55 @@
 ---
 name: new-page
-description: Create a new Astro page following project conventions
+description: Create a new application page following project conventions
 ---
 
-# Create New Astro Page
+# Create New Application Page
 
-Create a new Astro page at the specified route following the project's established patterns.
+Create a new application page at the specified route following the project's established patterns.
 
 ## Steps
 
-1. **Analyze the route** - Determine the correct path in `src/pages/`
-2. **Review similar pages** - Check existing pages for patterns (index.astro, about.astro, etc.)
-3. **Create the page** - Build the page with:
+1. **Discover the project structure**
 
-   - Proper SEO component usage
-   - Layout integration
-   - Responsive design
-   - Tailwind CSS styling
-   - Content from `src/components/shared/` where applicable
+   - **First, check for `CLAUDE.md`** at the project root - read it to find documented tech stack, frameworks, and conventions
+   - If CLAUDE.md exists, use the documented framework and patterns directly
+   - Otherwise, identify the framework from `package.json` dependencies
+
+2. **Review existing pages** - If CLAUDE.md didn't specify patterns, find 2-3 similar pages to understand:
+
+   - File naming conventions (kebab-case, camelCase, PascalCase)
+   - Component structure and imports
+   - Layout usage patterns
+   - Meta/SEO handling approach
+   - Styling approach (CSS modules, Tailwind, styled-components, etc.)
+
+3. **Create the page** following discovered patterns:
+
+   - Use the correct file extension (`.tsx`, `.jsx`, `.vue`, `.svelte`, etc.)
+   - Match existing component structure and imports
+   - Apply the same SEO/meta pattern (if applicable)
+   - Use the project's layout/wrapper pattern
+   - Follow the styling system already in use
+   - Reuse shared components where applicable
 
 4. **Verify the implementation**:
 
-   - Run `[package-manager] run [typecheck-script]`
-   - Run `[package-manager] run [lint-script]`
-   - Check the page renders at correct route
-   - Verify responsive design
+   - Run typecheck if configured: check `package.json` for "typecheck", "check", "tsc", "vue-tsc" scripts
+   - Run linter if configured: check for "lint" script
+   - Build the project if typecheck/lint unavailable
+   - Check the page renders at the correct route
 
-5. **Add to navigation** (if needed) - Update Header.astro with new link
+5. **Add to navigation** (optional)
+   - Only if explicitly requested by the user
+   - Follow existing navigation patterns (config files, nav components, etc.)
 
 ## Arguments
 
 $ARGUMENTS
 
-**Example**: `/new-page services/seo-audit`
+**Examples**:
 
-Creates a new page at `src/pages/services/seo-audit.astro`
+- `/new-page dashboard/analytics` - Creates a new dashboard analytics page
+- `/new-page about/team` - Creates a new about team page
+
+The route path will be interpreted based on the detected framework's conventions.
