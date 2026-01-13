@@ -47,7 +47,7 @@ This command follows the **CLAUDE.md Setup Workflow** which:
 
 ## Generated CLAUDE.md Structure
 
-Each sub-workflow generates an appropriate CLAUDE.md for its language:
+Each sub-workflow generates an appropriate CLAUDE.md for its language with language-appropriate sections. Common sections include:
 
 ```markdown
 # [Project Name]
@@ -58,149 +58,75 @@ Each sub-workflow generates an appropriate CLAUDE.md for its language:
 [Skill-linked version table - only technologies with relevant skills]
 
 ## Package Manager
-[detected-package-manager] - All commands use this package manager.
+[detected-package-manager] - Additional context about usage
 
-## Resolved Variables
-[Template variables resolved to project-specific values]
+## Runtime Environment
+| Platform | Version |
+|----------|---------|
+| **[Language Runtime]** | [version] |
+| **[package-manager]** | [version] |
+
+[Section varies by language: Node.js/npm, Python/poetry, Rust/cargo, Go/go mod, etc.]
 
 ## Critical Rules
 [Extracted NEVER/MUST/ALWAYS rules from all skills]
 
-## Marketplace Plugins
-[Matched plugins table]
+## Gotchas
+[Common pitfalls and edge cases from skills]
 
-### Available Skills
-[Skills with descriptions from frontmatter]
+## Available Skills (Auto-Activated)
+Skills activate automatically based on context. You don't need to invoke them manually.
 
-### Skill-Specific Guidance
-[Extracted CLAUDE-specific sections from skills]
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `skill-name` | [When it activates] | [What it helps with] |
+
+## Available Agents (Manual Invocation)
+Use `/agents` to list agents or invoke directly:
+
+| Agent | Purpose |
+|-------|---------|
+| `agent-name` | [What it does] |
+
+[Include if the project has local agents defined]
+
+## Commands
+[Commands grouped by category: Development, Testing, Quality Checks, etc.]
+
+## Project Structure
+[ASCII tree showing key directories]
+
+## Documentation
+| Need | Reference |
+|------|-----------|
+| **Start here** | [AI_DOCUMENTATION_INDEX.md](AI_DOCUMENTATION_INDEX.md) |
 
 ## Workflows
-[Available workflows]
-
-## Commands
-[All relevant commands]
+[Core development workflows with step-by-step instructions]
 
 ## Quality Gates
-[Detected validation commands]
+Before committing, run:
+[Validation commands]
 
-## Version Notes
-[Breaking changes and new features by version]
-
-## Development Notes
-[User-preserved content]
+## Workspaces
+[If monorepo: List of workspace directories with descriptions]
 ```
 
-## Example Output by Language
+**Note:** No footer with date or version numbers - git history already tracks when the file was modified.
 
-### JavaScript/TypeScript Project
+## Language-Specific Workflows
 
-```markdown
-## Tech Stack
+Each language has its own sub-workflow with detailed examples and language-specific guidance:
 
-| Technology | Version | Skill | Purpose |
-|------------|---------|-------|---------|
-| **Next.js** | 16.1 | `latest-nextjs` | App Router, Server Components |
-| **React** | 19.2 | `latest-react` | Compiler, Actions, new hooks |
+| Project Type | Sub-Workflow |
+|--------------|--------------|
+| **JavaScript/TypeScript** | `claude-md-setup-javascript.md` |
+| **Python** | `claude-md-setup-python.md` |
+| **Rust** | `claude-md-setup-rust.md` |
+| **Go** | `claude-md-setup-go.md` |
+| **PHP** | `claude-md-setup-php.md` |
+| **Ruby** | `claude-md-setup-ruby.md` |
+| **Java** | `claude-md-setup-java.md` |
+| **Generic** | `claude-md-setup-generic.md` |
 
-## Package Manager
-
-**pnpm** (detected from pnpm-lock.yaml)
-
-## Resolved Variables
-
-| Variable | Value | Source |
-|----------|-------|--------|
-| `package-manager` | `pnpm` | Detected from pnpm-lock.yaml |
-| `test-script` | `test` | Found in package.json scripts |
-| `dev-script` | `dev` | Found in package.json scripts |
-
-## Commands
-
-```bash
-pnpm install         # Install dependencies
-pnpm dev             # Start development server
-pnpm test            # Run tests
-pnpm build           # Build for production
-pnpm lint            # Lint code
-```
-```
-
-### Python Project
-
-```markdown
-## Tech Stack
-
-| Technology | Version | Skill | Purpose |
-|------------|---------|-------|---------|
-| **Django** | 5.1 | `python-django` | Web framework |
-| **pytest** | 8.0 | `python-pytest` | Testing framework |
-
-## Package Manager
-
-**poetry** (detected from pyproject.toml)
-
-## Resolved Variables
-
-| Variable | Value | Source |
-|----------|-------|--------|
-| `package-manager` | `poetry` | Detected from pyproject.toml |
-| `test-command` | `pytest` | Python standard |
-| `dev-command` | `python manage.py runserver` | Django standard |
-
-## Commands
-
-```bash
-poetry install       # Install dependencies
-poetry run pytest    # Run tests
-python manage.py runserver  # Start development server
-poetry build         # Build package
-ruff check           # Lint code
-```
-```
-
-### Rust Project
-
-```markdown
-## Tech Stack
-
-| Technology | Version | Skill | Purpose |
-|------------|---------|-------|---------|
-| **Rust** | 1.75 | `rust-lang` | Language version |
-| **tokio** | 1.35 | `rust-tokio` | Async runtime |
-
-## Package Manager
-
-**cargo** (Rust standard)
-
-## Resolved Variables
-
-| Variable | Value | Source |
-|----------|-------|--------|
-| `package-manager` | `cargo` | Rust standard |
-| `test-command` | `cargo test` | Cargo standard |
-| `dev-command` | `cargo run` | Cargo standard |
-
-## Commands
-
-```bash
-cargo fetch          # Fetch dependencies
-cargo test           # Run tests
-cargo run            # Run application
-cargo build          # Build for release
-cargo clippy         # Lint code
-```
-```
-
-## Notes
-
-- **Skill-linked versioning** - Only technologies with matched skills are versioned in CLAUDE.md
-- **Major.minor precision** - Versions show major.minor only (e.g., `16.1`, not `16.1.1`)
-- **Strong tech-skill linkage** - Tech stack table explicitly links technologies to their relevant skills
-- **Language-aware** - Each sub-workflow understands its ecosystem's conventions
-- **Plugin discovery is dynamic** - No technologies are hardcoded
-- **Matching uses keywords** - Plugins matched via `plugin.json` keywords and descriptions
-- **Preserves user content** - Custom sections maintained during updates
-- **Works with any marketplace** - Generic plugin discovery pattern
-
-See the full workflow documentation in `plugins/dev/workflows/claude-md-setup.md`.
+See the full router workflow in `plugins/dev/workflows/claude-md-setup.md`.
