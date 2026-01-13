@@ -1,34 +1,36 @@
 # /project:setup
 
-Analyzes the current project and generates or updates the `CLAUDE.md` file with comprehensive context from installed marketplace plugins.
+Analyzes the current project and generates or updates the `CLAUDE.md` file with comprehensive context from installed marketplace plugins. Works with **any project type** (JavaScript, Python, Rust, Go, PHP, Ruby, Java, etc.).
 
 ## What It Does
 
-This command follows the enhanced **[CLAUDE.md Setup Workflow](../workflows/claude-md-setup.md)** which:
+This command follows the **[CLAUDE.md Setup Workflow](../workflows/claude-md-setup.md)** which:
 
-1. **Discovers all marketplace plugins** - Scans plugin directories for `plugin.json` metadata
-2. **Analyzes project dependencies** - Reads `package.json`, lockfiles, and config files
-3. **Matches technologies to plugins** - Uses plugin keywords and descriptions
-4. **Extracts skill metadata** - Reads `SKILL.md` frontmatter for descriptions and updates
-5. **Extracts critical rules** - Finds NEVER/MUST/ALWAYS patterns from skill documentation
-6. **Extracts version context** - Captures breaking changes and new features (only for matched skills)
-7. **Extracts CLAUDE-specific sections** - Finds sections marked for CLAUDE.md inclusion
-8. **Resolves template variables** - Resolves `[package-manager]`, `[test-script]`, etc. against project
+1. **Detects project type** - Scans for language-specific files (package.json, Cargo.toml, go.mod, etc.)
+2. **Routes to sub-workflow** - Invokes the appropriate language-specific sub-workflow
+3. **Extracts dependencies** - Reads language-specific dependency files
+4. **Detects package manager** - Identifies the package manager for the detected language
+5. **Matches technologies to plugins** - Uses plugin keywords and descriptions
+6. **Extracts skill metadata** - Reads SKILL.md frontmatter for descriptions and updates
+7. **Extracts critical rules** - Finds NEVER/MUST/ALWAYS patterns from skill documentation
+8. **Resolves template variables** - Resolves language-specific variables (e.g., `[package-manager]`)
 9. **Generates skill-linked tech stack** - Only versions technologies with relevant skills
 10. **Generates comprehensive CLAUDE.md** - Creates or updates with all extracted context
 
-## Enhanced Features (New)
+## Supported Project Types
 
-The enhanced workflow now extracts from each matched skill:
-
-| Extraction Type | Source | Output in CLAUDE.md |
-|----------------|--------|---------------------|
-| **Frontmatter** | SKILL.md YAML frontmatter | Skill descriptions, last updated dates |
-| **Critical Rules** | NEVER/MUST/ALWAYS patterns | Aggregated critical rules section |
-| **Version Context** | Breaking changes sections | Version notes with migration guides |
-| **CLAUDE Sections** | "For CLAUDE.md" headings | Skill-specific guidance |
-| **Code Patterns** | ❌ WRONG vs ✅ CORRECT examples | Best practice examples |
-| **Template Variables** | `[package-manager]` etc. in skills | Resolved Variables section |
+| Project Type | Detected Files | Sub-Workflow |
+|--------------|----------------|--------------|
+| **JavaScript/TypeScript** | `package.json` | `claude-md-setup-javascript.md` |
+| **Python (Poetry)** | `pyproject.toml` | `claude-md-setup-python.md` |
+| **Python (pip)** | `setup.py`, `requirements.txt` | `claude-md-setup-python.md` |
+| **Rust** | `Cargo.toml` | `claude-md-setup-rust.md` |
+| **Go** | `go.mod` | `claude-md-setup-go.md` |
+| **PHP** | `composer.json` | `claude-md-setup-php.md` |
+| **Ruby** | `Gemfile` | `claude-md-setup-ruby.md` |
+| **Java (Maven)** | `pom.xml` | `claude-md-setup-java.md` |
+| **Java (Gradle)** | `build.gradle`, `build.gradle.kts` | `claude-md-setup-java.md` |
+| **Unknown/Generic** | None of the above | `claude-md-setup-generic.md` |
 
 ## When to Use
 
@@ -45,7 +47,7 @@ The enhanced workflow now extracts from each matched skill:
 
 ## Generated CLAUDE.md Structure
 
-The enhanced workflow generates:
+Each sub-workflow generates an appropriate CLAUDE.md for its language:
 
 ```markdown
 # [Project Name]
@@ -54,6 +56,9 @@ The enhanced workflow generates:
 
 ## Tech Stack
 [Skill-linked version table - only technologies with relevant skills]
+
+## Package Manager
+[detected-package-manager] - All commands use this package manager.
 
 ## Resolved Variables
 [Template variables resolved to project-specific values]
@@ -74,7 +79,7 @@ The enhanced workflow generates:
 [Available workflows]
 
 ## Commands
-[Available commands]
+[All relevant commands]
 
 ## Quality Gates
 [Detected validation commands]
@@ -82,85 +87,108 @@ The enhanced workflow generates:
 ## Version Notes
 [Breaking changes and new features by version]
 
-## Git & Commit Conventions
-[Standard conventions]
-
 ## Development Notes
 [User-preserved content]
 ```
 
-## Example Output
+## Example Output by Language
 
-### Tech Stack Table (skill-linked, major.minor only)
+### JavaScript/TypeScript Project
 
 ```markdown
 ## Tech Stack
 
 | Technology | Version | Skill | Purpose |
 |------------|---------|-------|---------|
-| **Next.js** | 16.1 | `latest-nextjs` | App Router, Server Components, async params |
+| **Next.js** | 16.1 | `latest-nextjs` | App Router, Server Components |
 | **React** | 19.2 | `latest-react` | Compiler, Actions, new hooks |
-| **Playwright** | 1.57 | `playwright-test` | E2E testing, accessibility |
 
-**Note:** Only technologies with relevant skills are shown. See `package.json` for full dependencies.
-```
+## Package Manager
 
-### Skills Table (with frontmatter)
+**pnpm** (detected from pnpm-lock.yaml)
 
-| Skill | Plugin | Purpose | Updated |
-|-------|--------|---------|---------|
-| `latest-nextjs` | nextjs | Latest Next.js 16 features, App Router, Server Components | 2026-01-11 |
-| `playwright-test` | playwright | E2E testing patterns, fixtures, page objects, accessibility | 2026-01-11 |
-
-### Critical Rules (extracted from skills)
-
-```markdown
-## Critical Rules
-
-### Playwright Testing
-- **CRITICAL**: Base URLs configured in config files, never in test files
-- **NEVER** add `webServer` configuration - server is managed externally
-- **ALWAYS** use root-relative paths (e.g., `await page.goto("/")`)
-
-### Next.js Development
-- **NEVER** edit `*/generated/` files - auto-generated by GraphQL codegen
-- **MUST** use `.role.graphql` naming for GraphQL documents
-```
-
-### Resolved Variables (template variables from skills)
-
-```markdown
 ## Resolved Variables
-
-Skills use template variables that are resolved for this project:
 
 | Variable | Value | Source |
 |----------|-------|--------|
 | `package-manager` | `pnpm` | Detected from pnpm-lock.yaml |
 | `test-script` | `test` | Found in package.json scripts |
-| `test:e2e-script` | `test:e2e` | Found in package.json scripts |
 | `dev-script` | `dev` | Found in package.json scripts |
-| `build-script` | `build` | Found in package.json scripts |
-| `lint-script` | `lint` | Found in package.json scripts |
-| `dev-port` | `3000` | Next.js default |
 
-**Usage:** When a skill says `[package-manager] run [test-script]`, use `pnpm run test` for this project.
+## Commands
+
+```bash
+pnpm install         # Install dependencies
+pnpm dev             # Start development server
+pnpm test            # Run tests
+pnpm build           # Build for production
+pnpm lint            # Lint code
+```
 ```
 
-### Version Notes (extracted from skills)
+### Python Project
 
 ```markdown
-## Version Notes
+## Tech Stack
 
-### Next.js 16
+| Technology | Version | Skill | Purpose |
+|------------|---------|-------|---------|
+| **Django** | 5.1 | `python-django` | Web framework |
+| **pytest** | 8.0 | `python-pytest` | Testing framework |
 
-**Breaking Changes:**
-- Route parameters are now async - use `await params.id`
-- `middleware.ts` renamed to `proxy.ts`
+## Package Manager
 
-**Migration:**
+**poetry** (detected from pyproject.toml)
+
+## Resolved Variables
+
+| Variable | Value | Source |
+|----------|-------|--------|
+| `package-manager` | `poetry` | Detected from pyproject.toml |
+| `test-command` | `pytest` | Python standard |
+| `dev-command` | `python manage.py runserver` | Django standard |
+
+## Commands
+
 ```bash
-npx @next/codemod@canary middleware-to-proxy
+poetry install       # Install dependencies
+poetry run pytest    # Run tests
+python manage.py runserver  # Start development server
+poetry build         # Build package
+ruff check           # Lint code
+```
+```
+
+### Rust Project
+
+```markdown
+## Tech Stack
+
+| Technology | Version | Skill | Purpose |
+|------------|---------|-------|---------|
+| **Rust** | 1.75 | `rust-lang` | Language version |
+| **tokio** | 1.35 | `rust-tokio` | Async runtime |
+
+## Package Manager
+
+**cargo** (Rust standard)
+
+## Resolved Variables
+
+| Variable | Value | Source |
+|----------|-------|--------|
+| `package-manager` | `cargo` | Rust standard |
+| `test-command` | `cargo test` | Cargo standard |
+| `dev-command` | `cargo run` | Cargo standard |
+
+## Commands
+
+```bash
+cargo fetch          # Fetch dependencies
+cargo test           # Run tests
+cargo run            # Run application
+cargo build          # Build for release
+cargo clippy         # Lint code
 ```
 ```
 
@@ -168,7 +196,8 @@ npx @next/codemod@canary middleware-to-proxy
 
 - **Skill-linked versioning** - Only technologies with matched skills are versioned in CLAUDE.md
 - **Major.minor precision** - Versions show major.minor only (e.g., `16.1`, not `16.1.1`)
-- **Strong tech-skill linkage** - Tech stack table explicitly links technologies to their skills
+- **Strong tech-skill linkage** - Tech stack table explicitly links technologies to their relevant skills
+- **Language-aware** - Each sub-workflow understands its ecosystem's conventions
 - **Plugin discovery is dynamic** - No technologies are hardcoded
 - **Matching uses keywords** - Plugins matched via `plugin.json` keywords and descriptions
 - **Preserves user content** - Custom sections maintained during updates

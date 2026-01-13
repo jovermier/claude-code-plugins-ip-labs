@@ -23,6 +23,9 @@ Core development workflows, hooks, and commands.
 **Skills:**
 
 - `plan-manager` - Manage workflow plans and context documents
+- `context7-skill-generator` - Automatically generate skills from Context7 MCP documentation
+- `file-todos` - File-based todo system with dependency tracking
+- `quality-severity` - P1/P2/P3 severity classification for issues
 
 **Workflows:**
 
@@ -39,6 +42,7 @@ Core development workflows, hooks, and commands.
 - `/project:new-component` - Create React/Astro components
 - `/project:new-blog-post` - Create blog posts
 - `/project:test-ui` - Run Playwright tests
+- `/skill:from-context7` - Generate a skill from Context7 MCP documentation
 
 **Hooks:**
 
@@ -107,7 +111,7 @@ Playwright E2E testing skills.
 
 | Plugin     | Skills            | Commands   | Hooks   |
 | ---------- | ----------------- | ---------- | ------- |
-| dev        | plan-manager      | 5 commands | 2 hooks |
+| dev        | 4 skills          | 6 commands | 2 hooks |
 | coder      | coder-environment | -          | -       |
 | astro      | latest-astro      | -          | -       |
 | react      | latest-react      | -          | -       |

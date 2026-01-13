@@ -5,7 +5,29 @@ All notable changes to the dev plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.0] - 2026-01-13
+
+### Added
+- **Multi-language CLAUDE.md generation** - `/project:setup` now supports any project type
+- **Sub-workflow architecture** - Router workflow detects project type and routes to language-specific sub-workflow
+- **7 new language-specific sub-workflows:**
+  - `claude-md-setup-javascript.md` - JavaScript/TypeScript (Node.js, Next.js, React, Vue)
+  - `claude-md-setup-python.md` - Python (Django, FastAPI, Flask, Poetry, pip)
+  - `claude-md-setup-rust.md` - Rust (Cargo, crates)
+  - `claude-md-setup-go.md` - Go (go modules)
+  - `claude-md-setup-php.md` - PHP (Composer, Laravel, Symfony)
+  - `claude-md-setup-ruby.md` - Ruby (Bundler, Rails, Sinatra)
+  - `claude-md-setup-java.md` - Java (Maven, Gradle, Spring Boot)
+  - `claude-md-setup-generic.md` - Fallback for unknown project types
+- **Language-aware template variable resolution** - Resolves `[package-manager]`, `[test-command]`, etc. per ecosystem
+- **Framework-specific command detection** - Detects dev, test, build commands for each language/framework
+- **Context7 Skill Generator** - Automatically generates skills from Context7 MCP documentation responses
+- **Command:** `/skill:from-context7` - Generate a skill from Context7 MCP documentation
+
+### Changed
+- **`/project:setup` command** - Now works with any project type, not just JavaScript
+- **`claude-md-setup.md`** - Converted from JavaScript-specific to router workflow
+- **Plugin description** - Updated to mention multi-language CLAUDE.md generation
 
 ## [1.1.0] - 2026-01-12
 
