@@ -1,17 +1,33 @@
 # /project:setup
 
-Analyzes the current project and generates or updates the `CLAUDE.md` file with relevant skills, workflows, and project context from the installed marketplace plugins.
+Analyzes the current project and generates or updates the `CLAUDE.md` file with comprehensive context from installed marketplace plugins.
 
 ## What It Does
 
-1. **Discovers project technologies** by analyzing `package.json`, config files, and directory structure
-2. **Scans marketplace plugins** to discover all available skills, workflows, and commands
-3. **Matches technologies to plugins** using plugin keywords and descriptions
-4. **Creates or updates CLAUDE.md** with:
-   - Project description and tech stack
-   - Relevant skills from matched plugins
-   - Applicable workflows and commands
-   - Project-specific conventions and patterns
+This command follows the enhanced **[CLAUDE.md Setup Workflow](../workflows/claude-md-setup.md)** which:
+
+1. **Discovers all marketplace plugins** - Scans plugin directories for `plugin.json` metadata
+2. **Analyzes project dependencies** - Reads `package.json`, lockfiles, and config files
+3. **Matches technologies to plugins** - Uses plugin keywords and descriptions
+4. **Extracts skill metadata** - Reads `SKILL.md` frontmatter for descriptions and updates
+5. **Extracts critical rules** - Finds NEVER/MUST/ALWAYS patterns from skill documentation
+6. **Extracts version context** - Captures breaking changes and new features
+7. **Extracts CLAUDE-specific sections** - Finds sections marked for CLAUDE.md inclusion
+8. **Resolves template variables** - Resolves `[package-manager]`, `[test-script]`, etc. against project
+9. **Generates comprehensive CLAUDE.md** - Creates or updates with all extracted context
+
+## Enhanced Features (New)
+
+The enhanced workflow now extracts from each matched skill:
+
+| Extraction Type | Source | Output in CLAUDE.md |
+|----------------|--------|---------------------|
+| **Frontmatter** | SKILL.md YAML frontmatter | Skill descriptions, last updated dates |
+| **Critical Rules** | NEVER/MUST/ALWAYS patterns | Aggregated critical rules section |
+| **Version Context** | Breaking changes sections | Version notes with migration guides |
+| **CLAUDE Sections** | "For CLAUDE.md" headings | Skill-specific guidance |
+| **Code Patterns** | ❌ WRONG vs ✅ CORRECT examples | Best practice examples |
+| **Template Variables** | `[package-manager]` etc. in skills | Resolved Variables section |
 
 ## When to Use
 
@@ -26,62 +42,121 @@ Analyzes the current project and generates or updates the `CLAUDE.md` file with 
 /project:setup
 ```
 
-## The Process
+## Generated CLAUDE.md Structure
 
-This command follows the [CLAUDE.md Setup Workflow](../workflows/claude-md-setup.md) which:
+The enhanced workflow generates:
 
-1. **Scans the marketplace plugins**
-   - Reads all `plugin.json` files from the `plugins/` directory
-   - Collects available skills, commands, and workflows
-   - Builds a registry of plugin capabilities
+```markdown
+# [Project Name]
 
-2. **Analyzes the workspace**
-   - Reads `package.json` for dependencies
-   - Checks for framework config files
-   - Examines directory structure
+[Project description]
 
-3. **Matches technologies to plugins**
-   - Compares detected dependencies against plugin keywords
-   - Matches config patterns to plugin descriptions
-   - Selects relevant skills from matched plugins
+## Tech Stack
+[Categorized technologies with versions]
 
-4. **Generates CLAUDE.md**
-   - Creates new file if none exists
-   - Preserves existing custom content when updating
-   - Adds sections: Tech Stack, Available Skills, Workflows, Commands
+## Package Manager
+[Detected package manager]
+
+## Resolved Variables
+[Template variables resolved to project-specific values]
+
+## Critical Rules
+[Extracted NEVER/MUST/ALWAYS rules from all skills]
+
+## Marketplace Plugins
+[Matched plugins table]
+
+### Available Skills
+[Skills with descriptions from frontmatter]
+
+### Skill-Specific Guidance
+[Extracted CLAUDE-specific sections from skills]
+
+## Workflows
+[Available workflows]
+
+## Commands
+[Available commands]
+
+## Quality Gates
+[Detected validation commands]
+
+## Version Notes
+[Breaking changes and new features by version]
+
+## Git & Commit Conventions
+[Standard conventions]
+
+## Development Notes
+[User-preserved content]
+```
 
 ## Example Output
 
+### Skills Table (with frontmatter)
+
+| Skill | Plugin | Purpose | Updated |
+|-------|--------|---------|---------|
+| `latest-nextjs` | nextjs | Latest Next.js 16 features, App Router, Server Components | 2026-01-11 |
+| `playwright-test` | playwright | E2E testing patterns, fixtures, page objects, accessibility | 2026-01-11 |
+
+### Critical Rules (extracted from skills)
+
 ```markdown
-# My Project
+## Critical Rules
 
-A web application built with modern frameworks.
+### Playwright Testing
+- **CRITICAL**: Base URLs configured in config files, never in test files
+- **NEVER** add `webServer` configuration - server is managed externally
+- **ALWAYS** use root-relative paths (e.g., `await page.goto("/")`)
 
-## Tech Stack
+### Next.js Development
+- **NEVER** edit `*/generated/` files - auto-generated by GraphQL codegen
+- **MUST** use `.role.graphql` naming for GraphQL documents
+```
 
-- **Frontend**: [Detected frameworks from package.json]
-- **Backend**: [Detected backend technologies]
-- **Testing**: [Testing frameworks]
+### Resolved Variables (template variables from skills)
 
-## Available Skills
+```markdown
+## Resolved Variables
 
-| Skill | Plugin | Purpose |
-|-------|--------|---------|
-| [skill-name] | [plugin] | [From plugin description] |
+Skills use template variables that are resolved for this project:
 
-## Workflows
+| Variable | Value | Source |
+|----------|-------|--------|
+| `package-manager` | `pnpm` | Detected from pnpm-lock.yaml |
+| `test-script` | `test` | Found in package.json scripts |
+| `test:e2e-script` | `test:e2e` | Found in package.json scripts |
+| `dev-script` | `dev` | Found in package.json scripts |
+| `build-script` | `build` | Found in package.json scripts |
+| `lint-script` | `lint` | Found in package.json scripts |
+| `dev-port` | `3000` | Next.js default |
 
-- [Workflow Name](path) - [Description]
+**Usage:** When a skill says `[package-manager] run [test-script]`, use `pnpm run test` for this project.
+```
 
-## Commands
+### Version Notes (extracted from skills)
 
-| Command | Purpose |
-|---------|---------|
-| `/command:name` | [Description] |
+```markdown
+## Version Notes
+
+### Next.js 16
+
+**Breaking Changes:**
+- Route parameters are now async - use `await params.id`
+- `middleware.ts` renamed to `proxy.ts`
+
+**Migration:**
+```bash
+npx @next/codemod@canary middleware-to-proxy
+```
 ```
 
 ## Notes
 
-- This command discovers all plugins dynamically - no technologies are hardcoded
-- Plugin matching uses `keywords` and `description` from each plugin's `plugin.json`
-- Existing CLAUDE.md content is preserved during updates
+- **Plugin discovery is dynamic** - No technologies are hardcoded
+- **Matching uses keywords** - Plugins matched via `plugin.json` keywords and descriptions
+- **Preserves user content** - Custom sections maintained during updates
+- **Works with any marketplace** - Generic plugin discovery pattern
+
+See the full [workflow documentation](../workflows/claude-md-setup.md) for implementation details.

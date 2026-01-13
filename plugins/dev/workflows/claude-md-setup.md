@@ -1,6 +1,6 @@
 # CLAUDE.md Setup Workflow
 
-Analyzes the project and generates or updates `CLAUDE.md` with relevant marketplace skills, workflows, and project context. This workflow dynamically discovers all available plugins without hardcoding any specific technologies.
+Analyzes the project and generates or updates `CLAUDE.md` with relevant marketplace skills, workflows, critical rules, version-specific context, and project guidance. This workflow dynamically discovers all available plugins and extracts skill-specific content for comprehensive project documentation.
 
 ## When to Use This Workflow
 
@@ -16,20 +16,22 @@ Analyzes the project and generates or updates `CLAUDE.md` with relevant marketpl
 Discover all available plugins by reading the marketplace configuration:
 
 ```bash
-# Read marketplace configuration
-cat .claude-plugin/marketplace.json
+# Find marketplace plugins directory (locations to check):
+# 1. /home/coder/claude-code-plugins-ip-labs/plugins/
+# 2. /home/coder/.claude/plugins/marketplaces/
+# 3. .claude/plugins/ (project-local)
 
-# List all plugin directories
-ls -la plugins/
+# For each plugin, read plugin.json
+cat <plugin-path>/.claude-plugin/plugin.json
 ```
 
 For each plugin, extract:
 - **Plugin name** - From `name` field
 - **Description** - What the plugin provides
 - **Keywords** - Searchable tags for matching
-- **Skills** - Array of skill paths
+- **Skills** - Array of skill paths (scan `skills/` directory if not specified)
 - **Commands** - Array of command paths (if applicable)
-- **Hooks** - Array of hook paths (if applicable)
+- **Workflows** - Scan `workflows/` directory
 
 **Plugin Registry Structure:**
 
@@ -39,13 +41,64 @@ plugins:
   - name: [plugin-name]
     description: [what it provides]
     keywords: [tag1, tag2, ...]
-    skills: [skill-path-1, skill-path-2, ...]
-    commands: [command-path-1, ...]  # if present
+    skills:
+      - name: [skill-name-from-directory]
+        path: [full-path-to-skill]
+        description: [from SKILL.md frontmatter]
+        updated: [from SKILL.md frontmatter]
+        claude_sections: [extracted CLAUDE-specific sections]
+        critical_rules: [extracted critical rules]
+        version_context: [extracted version-specific notes]
+    commands: [command-path-1, ...]
+    workflows: [workflow-path-1, ...]
 ```
 
-### Step 2: Analyze the Workspace
+### Step 2: Extract Skill Metadata (CRITICAL)
 
-Gather information about the project:
+For EACH skill discovered, read its `SKILL.md` file and extract:
+
+**Frontmatter Fields:**
+```yaml
+# Extract these fields from SKILL.md frontmatter (between --- markers):
+name: skill-name
+description: One-line description of what the skill provides
+updated: ISO date or version reference
+```
+
+**CLAUDE-Specific Sections:**
+
+Look for these special sections in SKILL.md that should be included in CLAUDE.md:
+
+| Section Pattern | Purpose |
+|----------------|---------|
+| `## CLAUDE\.md Requirements` | Explicit instructions for CLAUDE.md |
+| `## For CLAUDE\.md` | Content meant for CLAUDE.md |
+| `## CLAUDE Context` | Context specifically for Claude |
+| `## Critical Rules` | Important rules that must be documented |
+| `## Gotchas` | Common pitfalls to avoid |
+| `## Breaking Changes` | Version-specific breaking changes |
+| `## Version Notes` | Version-specific context |
+| `## Project Setup` | Setup instructions for this technology |
+
+**Critical Rules Extraction:**
+
+Extract content from sections containing:
+- "CRITICAL", "IMPORTANT", "MUST", "NEVER", "ALWAYS"
+- Code examples with "DON'T" or "WRONG" vs "DO" or "CORRECT"
+- Configuration warnings
+- Environment-specific notes
+
+**Version-Aware Context:**
+
+Extract version-specific information:
+- Major version requirements
+- Breaking changes between versions
+- New features in recent versions
+- Migration guides
+
+### Step 3: Analyze the Workspace
+
+Gather comprehensive project information:
 
 ```bash
 # Check for package.json (if exists)
@@ -59,289 +112,701 @@ ls -la | grep -E "(api|server|backend|functions)"
 
 # Check for testing setup
 ls -la tests/ 2>/dev/null || ls -la __tests__/ 2>/dev/null || echo "No tests directory"
+
+# Check for existing CLAUDE.md
+cat CLAUDE.md 2>/dev/null || echo "No existing CLAUDE.md"
+
+# Check for lockfiles to detect package manager
+ls -la | grep -E "(pnpm-lock|yarn.lock|package-lock|bun.lockb)"
 ```
 
 **Extract Technologies:**
 
-- From `package.json`: All dependencies and devDependencies with their versions
+- From `package.json`: All dependencies and devDependencies with versions
 - From config files: Framework names (parse filename patterns like `*.config.{js,ts,mjs}`)
 - From directories: Backend frameworks, testing frameworks
-
-**Detect Quality Gates from package.json:**
-
-Scan the `scripts` section in `package.json` for quality gate commands:
-
-| Gate Type | Script Name Patterns (checked in priority order) |
-|-----------|---------------------------------------------------|
-| Type Checks | `typecheck`, `check`, `validate` |
-| Linting | `lint`, `lint:fix` |
-| Build | `build`, `compile`, `bundle` |
-| Tests | `test`, `test:unit`, `test:e2e` |
-
-For each category, find the first matching script name and generate the full command using the detected package manager.
+- From existing `CLAUDE.md`: Custom user content to preserve
 
 **Version Detection:**
 
-When extracting dependencies, capture and report major versions for frameworks that have significant version-specific features. This is important because major version releases often introduce breaking changes or new capabilities that should be documented.
+When extracting dependencies, capture and report major versions:
 
-For each dependency, extract:
-- Package name
-- Installed version (from `package.json` or `package-lock.json`)
-- Major version number (e.g., 19.x, 5.x, 4.x)
+```javascript
+// For each dependency, extract:
+{
+  name: "next",
+  version: "^16.1.1",
+  major: "16",
+  significant: true  // Mark if major version has breaking changes or new features
+}
+```
 
-Include major versions in the Tech Stack section when the version is significant for development decisions or feature availability.
+**Detect Package Manager:**
 
-### Step 3: Match Technologies to Plugins
+Check lockfiles in priority order:
+1. `bun.lockb` → bun
+2. `pnpm-lock.yaml` → pnpm
+3. `yarn.lock` → yarn
+4. `package-lock.json` → npm (default fallback)
+
+**Detect Quality Gates:**
+
+Scan the `scripts` section in `package.json` for quality gate commands:
+
+| Gate Type | Script Name Patterns (priority order) |
+|-----------|---------------------------------------|
+| Type Checks | `typecheck`, `check:types`, `check`, `validate` |
+| Linting | `lint`, `lint:fix`, `lint:check` |
+| Formatting | `format`, `format:check`, `prettier` |
+| Build | `build`, `compile`, `bundle` |
+| Unit Tests | `test`, `test:unit`, `vitest`, `jest` |
+| E2E Tests | `test:e2e`, `playwright`, `cy:run` |
+| Codegen | `codegen`, `generate`, `graphql-codegen` |
+
+### Step 4: Match Technologies to Plugins
 
 Compare detected technologies against plugin keywords and descriptions:
 
-```python
-# Pseudocode for matching
-detected_tech = extract_from_package_json() + extract_from_configs()
+**Matching Algorithm:**
 
-matched_plugins = []
-for plugin in scan_marketplace():
-    # Check if any detected tech matches plugin keywords
-    if any(tech in plugin.keywords for tech in detected_tech):
-        matched_plugins.append(plugin)
-    # Also check descriptions for mentions
-    elif any(tech.lower() in plugin.description.lower() for tech in detected_tech):
-        matched_plugins.append(plugin)
+```javascript
+function matchPlugins(plugins, detectedTech) {
+  return plugins.filter(plugin => {
+    // Check keywords for direct matches
+    const keywordMatch = plugin.keywords.some(kw =>
+      detectedTech.some(tech =>
+        tech.toLowerCase().includes(kw.toLowerCase()) ||
+        kw.toLowerCase().includes(tech.toLowerCase())
+      )
+    );
+
+    // Check descriptions for mentions
+    const descMatch = detectedTech.some(tech =>
+      plugin.description.toLowerCase().includes(tech.toLowerCase())
+    );
+
+    return keywordMatch || descMatch;
+  });
+}
 ```
 
-**Matching Logic:**
+**Always Include These Plugins:**
 
-| Detection Source | Match Against |
-|------------------|--------------|
-| `package.json` dependencies | Plugin `keywords` array |
-| Config filenames | Plugin `description` text |
-| Directory patterns | Plugin `keywords` array |
+- **`dev`** - Core workflows, agents, todos (always relevant)
+- **`coder`** - If running in a Coder workspace (check for `/coder` indicator)
 
-### Step 4: Collect Skills, Workflows, and Commands
+### Step 4.5: Resolve Skill Template Variables (CRITICAL)
 
-For each matched plugin, collect its resources:
+Skills contain **template variables** (placeholders) that need to be resolved against the actual project configuration. These variables appear in skill documentation as `[variable-name]` and must be replaced with project-specific values.
 
-**Skills:**
-- Read each skill's `SKILL.md` file
-- Extract the `description` from frontmatter
-- Build a table of available skills
+**Why This Matters:**
 
-**Workflows:**
-- Always include core workflows from the `dev` plugin (meta-workflow, TDD, UI iteration, bug-fix)
-- Include any additional workflows from matched plugins
+When a skill says:
+- "Use `[package-manager] run test`" - the actual value (pnpm/npm/yarn) must be documented
+- "Check `[dev-port]` is available" - the actual port (3000/5173/etc) must be known
+- "Run `[test-script]`" - the actual script name must be resolved
 
-**Commands:**
-- Collect all commands from the `dev` plugin
-- Include commands from other matched plugins (if any)
+**Variable Detection:**
 
-### Step 5: Generate or Update CLAUDE.md
+Scan all matched skills' `SKILL.md` files for template variable patterns:
 
-**If CLAUDE.md doesn't exist:**
+```javascript
+function extractTemplateVariables(skillContent) {
+  // Find all [variable-name] patterns
+  const variablePattern = /\[([a-z_-]+)\]/gi;
+  const matches = skillContent.match(variablePattern) || [];
 
-Create a new file with this structure:
+  // Extract unique variable names
+  const uniqueVars = [...new Set(matches)];
+  return uniqueVars; // e.g., ['[package-manager]', '[test-script]', '[dev-port]']
+}
+```
+
+**Common Template Variables:**
+
+| Variable | Description | How to Resolve |
+|----------|-------------|----------------|
+| `[package-manager]` | Package manager to use | Detect from lockfiles (pnpm/yarn/npm/bun) |
+| `[package_manager]` | Same as above (underscore variant) | Same as above |
+| `[test-script]` | Test command name | Find in package.json scripts |
+| `[test:e2e-script]` | E2E test command | Find `test:e2e`, `playwright` in scripts |
+| `[dev-script]` | Dev server command | Find `dev`, `start` in scripts |
+| `[build-script]` | Build command | Find `build` in scripts |
+| `[lint-script]` | Lint command | Find `lint` in scripts |
+| `[dev-port]` | Dev server port | Check config files or defaults |
+| `[prod-port]` | Production port | Check config files or defaults |
+| `[workspace-name]` | Coder workspace name | Check environment or prompt user |
+| `[base-url]` | Base URL for tests | Check environment/config |
+| `[app-directory]` | App source directory | Find `src/`, `app/`, etc. |
+| `[config-file]` | Config file location | Find relevant config files |
+
+**Variable Resolution Strategy:**
+
+```javascript
+function resolveVariables(variables, project) {
+  const resolved = {};
+
+  for (const variable of variables) {
+    const key = variable.replace(/[\[\]]/g, '').toLowerCase(); // [package-manager] -> package-manager
+
+    resolved[key] = resolveVariable(key, project);
+  }
+
+  return resolved;
+}
+
+function resolveVariable(variableName, project) {
+  const resolvers = {
+    'package-manager': () => detectPackageManager(),
+    'package_manager': () => detectPackageManager(),
+    'test-script': () => findScript('test', project.packageJson),
+    'test:e2e-script': () => findScript('test:e2e', project.packageJson),
+    'dev-script': () => findScript('dev', project.packageJson),
+    'build-script': () => findScript('build', project.packageJson),
+    'lint-script': () => findScript('lint', project.packageJson),
+    'dev-port': () => detectPort('dev', project.configs),
+    'prod-port': () => detectPort('prod', project.configs),
+    'base-url': () => detectBaseURL(project.configs, project.env),
+    'app-directory': () => findAppDirectory(project.directories),
+    'config-file': () => findConfigFile(project.files),
+  };
+
+  const resolver = resolvers[variableName];
+  return resolver ? resolver() : `[${variableName}]`;
+}
+
+function findScript(type, packageJson) {
+  const scripts = packageJson.scripts || {};
+
+  // Priority patterns for each type
+  const patterns = {
+    'test': ['test', 'test:unit', 'vitest', 'jest'],
+    'test:e2e': ['test:e2e', 'playwright', 'e2e', 'cy:run'],
+    'dev': ['dev', 'start', 'serve'],
+    'build': ['build', 'compile', 'bundle'],
+    'lint': ['lint', 'eslint', 'check']
+  };
+
+  const typePatterns = patterns[type] || [type];
+  for (const pattern of typePatterns) {
+    if (scripts[pattern]) {
+      return pattern; // Return the script name, not the full command
+    }
+  }
+
+  return null;
+}
+
+function detectPort(type, configs) {
+  // Check common config locations
+  const configChecks = [
+    () => configs.nextConfig?.port, // next.config.js
+    () => configs.viteConfig?.server?.port, // vite.config.js
+    () => configs.env?.[`${type.toUpperCase()}_PORT`], // .env files
+  ];
+
+  for (const check of configChecks) {
+    const port = check();
+    if (port) return port;
+  }
+
+  // Default ports by type
+  const defaults = { dev: 3000, prod: 8080 };
+  return defaults[type] || 3000;
+}
+
+function detectBaseURL(configs, env) {
+  // Check in order: env var, config file, default
+  return env.BASE_URL ||
+         env.PLAYWRIGHT_BASE_URL ||
+         env.APP_SERVER_URL ||
+         configs.playwrightConfig?.use?.baseURL ||
+         'http://localhost:3000';
+}
+```
+
+**Document Resolved Variables in CLAUDE.md:**
+
+Add a new section `## Resolved Variables` to CLAUDE.md:
+
+```markdown
+## Resolved Variables
+
+Skills reference template variables that are resolved for this project:
+
+| Variable | Resolved Value | Source |
+|----------|----------------|--------|
+| `package-manager` | `pnpm` | Detected from pnpm-lock.yaml |
+| `test-script` | `test` | Found in package.json scripts |
+| `test:e2e-script` | `test:e2e` | Found in package.json scripts |
+| `dev-script` | `dev` | Found in package.json scripts |
+| `dev-port` | `3000` | Detected from next.config.js |
+| `base-url` | `http://localhost:3000` | From .env.local |
+
+**For skill authors:** Use `[package-manager]` in skill documentation and it will be resolved to the actual package manager for each project.
+```
+
+**Example Resolution:**
+
+Input from `playwright-test/SKILL.md`:
+```markdown
+## Running Tests
+
+```bash
+# Run all tests
+[package-manager] run [test-script]
+
+# Run E2E tests
+[package-manager] run [test:e2e-script]
+```
+```
+
+Resolution for MyCritters project:
+- `[package-manager]` → `pnpm` (from pnpm-lock.yaml)
+- `[test-script]` → `test` (found in package.json)
+- `[test:e2e-script]` → `test:e2e` (found in package.json)
+
+Output in CLAUDE.md:
+```markdown
+## Resolved Variables
+
+| Variable | Value | Source |
+|----------|-------|--------|
+| package-manager | pnpm | pnpm-lock.yaml |
+| test-script | test | package.json |
+| test:e2e-script | test:e2e | package.json |
+
+**Usage:** When skills reference `[package-manager] run test`, use `pnpm run test` for this project.
+```
+
+**Advanced Variables:**
+
+Some variables require more sophisticated detection:
+
+| Variable | Detection Method |
+|----------|------------------|
+| `[workspace-name]` | Check `CODER_WORKSPACE_NAME` env var, or prompt user |
+| `[hasura-console-url]` | Check for Hasura backend config, default to localhost:9695 |
+| `[graphql-role]` | Check project patterns (e.g., user/employee/admin) |
+| `[backend-url]` | Check backend service configs or environment |
+| `[database-name]` | Check database connection strings or configs |
+
+### Step 5: Generate Comprehensive CLAUDE.md
+
+**File Structure:**
 
 ```markdown
 # [Project Name from package.json or directory]
 
-[Generate a brief 1-2 sentence description based on detected technologies]
+[Custom project description - preserve if exists, otherwise generate 1-2 sentences based on tech stack]
 
 ## Tech Stack
 
-List detected technologies by category, including major versions when significant:
-
-- **Frontend**: [Framework name and major version]
-- **Backend**: [Backend technologies with versions if applicable]
-- **Testing**: [Testing frameworks with versions]
-- **Tooling**: [Build tools, linters, etc.]
+[Detected technologies by category with versions]
 
 ## Package Manager
 
-[detected-package-manager] - Always use this package manager for all commands in this project.
+[detected-package-manager] - All commands use this package manager.
 
-## Available Skills
+## Resolved Variables
 
-| Skill | Plugin | Purpose |
-|-------|--------|---------|
-| [skill-name-from-path] | [plugin-name] | [skill description] |
-| ... | ... | ... |
+[Template variables from skills, resolved to project-specific values]
 
-*Note: Skill descriptions come from each skill's SKILL.md frontmatter*
+## Critical Rules
+
+[Extracted critical rules from all matched skills - NEVER/MUST/ALWAYS patterns]
+
+## Marketplace Plugins
+
+[Table of matched plugins]
+
+### Available Skills
+
+[Table with skill names, descriptions from frontmatter, and last updated]
+
+### Skill-Specific Guidance
+
+[For each matched skill, include CLAUDE-specific sections extracted from SKILL.md]
 
 ## Workflows
 
-List all relevant workflows:
-
-- [Meta-Workflow](.claude/workflows/meta-workflow.md) - Automatic workflow selection and composition
-- [TDD Workflow](.claude/workflows/tdd-workflow.md) - Test-driven development
-- [UI Iteration Workflow](.claude/workflows/ui-iteration-workflow.md) - Iterative UI development with visual feedback
-- [Bug Fix Workflow](.claude/workflows/bug-fix-workflow.md) - Systematic debugging approach
-
-*Include additional workflows from matched plugins here*
+[Core dev workflows + any from matched plugins]
 
 ## Commands
 
-| Command | Purpose |
-|---------|---------|
-| `/project:setup` | Regenerate this CLAUDE.md file |
-| [command-from-plugin] | [command description] |
+[All relevant commands]
 
 ## Quality Gates
 
-Run these commands after making changes to verify code quality:
+[Detected quality gate commands]
 
-```bash
-# Type Checks
-[package-manager] run [detected-typecheck-script]
+## Version Notes
 
-# Linting
-[package-manager] run [detected-lint-script]
-
-# Build
-[package-manager] run [detected-build-script]
-
-# Tests (if applicable)
-[package-manager] run [detected-test-script]
-```
-
-*Note: Package manager is detected automatically from lockfiles. Scripts are extracted from package.json.*
+[Version-specific context from matched skills]
 
 ## Git & Commit Conventions
 
-When creating commits and pull requests for this project:
-
-- **Commit messages**: Do NOT include author names in commit descriptions (use `git commit` without `--author` flag)
-- **Commit format**: Focus on the "what" and "why" rather than "who"
-- **PR descriptions**: Describe changes clearly without attributing authorship
-- **Co-authorship**: Only attribute human collaborators; never include LLMs, AI tools, or automated systems in `Co-Authored-By:` trailers
+[Standard conventions section]
 
 ## Development Notes
 
-[Any project-specific conventions, patterns, or notes - leave this section empty or add a placeholder if none detected]
+[User-added content preserved, or placeholder if none]
 ```
 
-**If CLAUDE.md exists:**
+**Detailed Section Templates:**
 
-1. Read the existing file
-2. Preserve these sections (if they exist):
-   - Custom project description (between title and Tech Stack)
-   - Development notes section
-   - Any user-added content not in standard sections
-3. Update these sections completely:
-   - Tech Stack (re-detect from current package.json)
-   - Package Manager (re-detect from lockfiles)
-   - Available Skills (refresh from current marketplace)
-   - Workflows (add/remove based on matched plugins)
-   - Commands (refresh command list)
-   - Quality Gates (re-detect scripts from package.json)
+### Tech Stack Template
 
-### Step 6: Quality Gates
+```markdown
+## Tech Stack
+
+### Frontend
+- **[Framework]** [major version] - [brief note if significant changes]
+- **[UI Library]** [version] - [if applicable]
+
+### Backend
+- **[Backend Tech]** [version] - [if applicable]
+
+### Database
+- **[Database]** [version] - [if applicable]
+
+### Testing
+- **[Test Framework]** [version] - [if applicable]
+- **[E2E Framework]** [version] - [if applicable]
+
+### Tooling
+- **[Build Tool]** [version]
+- **[Linting]** [version]
+- **[Package Manager]** [version]
+```
+
+### Critical Rules Template
+
+```markdown
+## Critical Rules
+
+Extract rules from skills that match these patterns:
+
+- **NEVER** [action] - [consequence]
+- **ALWAYS** [action] - [reason]
+- **MUST** [requirement] - [explanation]
+- **CRITICAL** [warning] - [impact]
+
+### From [Skill Name]
+
+[Extract rules from this skill's SKILL.md]
+```
+
+### Skill-Specific Guidance Template
+
+```markdown
+### Skill: [Skill Name]
+
+[Extracted content from CLAUDE-specific sections in SKILL.md]
+
+**Key Patterns:**
+
+[Extract common patterns/best practices]
+
+**Version Notes:**
+
+[Extract version-specific information]
+```
+
+### Version Notes Template
+
+```markdown
+## Version Notes
+
+### [Framework Name] [Major Version]
+
+**Breaking Changes:**
+- [Change from skill docs]
+- [Migration note if available]
+
+**New Features:**
+- [Feature from skill docs]
+- [Feature from skill docs]
+
+**Migration:**
+- [Migration guide excerpt if available]
+```
+
+**If CLAUDE.md Exists - Preservation Strategy:**
+
+1. **Read existing file** and parse into sections
+2. **Preserve these sections exactly:**
+   - Custom project description (between title and first `##`)
+   - `## Critical Rules` - User may have added project-specific rules
+   - `## Development Notes` - User's custom notes
+   - Any custom sections not in standard template
+3. **Update these sections completely:**
+   - `## Tech Stack` - Re-detect from package.json
+   - `## Package Manager` - Re-detect from lockfiles
+   - `## Resolved Variables` - Re-resolve template variables from skills
+   - `## Marketplace Plugins` - Refresh from current marketplace
+   - `## Available Skills` - Refresh with descriptions from frontmatter
+   - `## Skill-Specific Guidance` - Re-extract from SKILL.md files
+   - `## Workflows` - Add/remove based on matched plugins
+   - `## Commands` - Refresh command list
+   - `## Quality Gates` - Re-detect from package.json
+   - `## Version Notes` - Re-extract from skills
+4. **Merge strategy:**
+   - Append new critical rules to existing (don't duplicate)
+   - Update version notes while preserving user notes
+   - Keep user-added sections at the end
+
+### Step 6: Skill Content Extraction (NEW)
+
+For each matched skill, extract and organize content:
+
+**Frontmatter Extraction:**
+
+```javascript
+function extractSkillFrontmatter(skillPath) {
+  const content = readFile(`${skillPath}/SKILL.md`);
+  const frontmatterMatch = content.match(/^---\n([\s\S]+?)\n---/);
+
+  if (frontmatterMatch) {
+    return parseYaml(frontmatterMatch[1]);
+    // Expected fields: name, description, updated
+  }
+  return null;
+}
+```
+
+**CLAUDE-Specific Section Extraction:**
+
+```javascript
+function extractClaudeSections(skillPath) {
+  const content = readFile(`${skillPath}/SKILL.md`);
+  const sections = {};
+
+  // Patterns to look for
+  const patterns = [
+    /## CLAUDE\.md Requirements\n([\s\S]*?)(?=\n##|$)/,
+    /## For CLAUDE\.md\n([\s\S]*?)(?=\n##|$)/,
+    /## CLAUDE Context\n([\s\S]*?)(?=\n##|$)/,
+    /## Critical Rules\n([\s\S]*?)(?=\n##|$)/,
+    /## Gotchas\n([\s\S]*?)(?=\n##|$)/,
+    /## Breaking Changes\n([\s\S]*?)(?=\n##|$)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = content.match(pattern);
+    if (match) {
+      sections[match[0]] = match[1].trim();
+    }
+  }
+
+  return sections;
+}
+```
+
+**Critical Rules Extraction:**
+
+```javascript
+function extractCriticalRules(skillPath) {
+  const content = readFile(`${skillPath}/SKILL.md`);
+  const rules = [];
+
+  // Look for code blocks with DON'T vs DO patterns
+  const codeBlocks = content.match(/```[\s\S]*?```/g) || [];
+  for (const block of codeBlocks) {
+    if (block.includes('// ❌ WRONG') || block.includes('// ✅ CORRECT')) {
+      rules.push({
+        type: 'code-pattern',
+        content: block
+      });
+    }
+  }
+
+  // Look for bullet points with NEVER/ALWAYS/MUST
+  const lines = content.split('\n');
+  for (const line of lines) {
+    if (line.match(/- \*\*(NEVER|ALWAYS|MUST|CRITICAL)\*\*/)) {
+      rules.push({
+        type: 'rule',
+        content: line
+      });
+    }
+  }
+
+  return rules;
+}
+```
+
+**Version Context Extraction:**
+
+```javascript
+function extractVersionContext(skillPath, packageName) {
+  const content = readFile(`${skillPath}/SKILL.md`);
+  const context = {};
+
+  // Look for version-specific sections
+  const versionSection = content.match(new RegExp(
+    `## ${packageName} \\d+\\.\\d+.*?\\n([\\s\\S]*?)(?=\\n##|$)`
+  ));
+
+  if (versionSection) {
+    context.version_notes = versionSection[1];
+  }
+
+  // Look for breaking changes
+  const breakingChanges = content.match(
+    /## Breaking Changes\n([\s\S]*?)(?=\n##|$)/
+  );
+
+  if (breakingChanges) {
+    context.breaking_changes = breakingChanges[1];
+  }
+
+  // Look for migration guides
+  const migration = content.match(
+    /## Migration Guide\n([\s\S]*?)(?=\n##|$)/
+  );
+
+  if (migration) {
+    context.migration_guide = migration[1];
+  }
+
+  return context;
+}
+```
+
+### Step 7: Quality Gates Validation
 
 After generating or updating CLAUDE.md:
 
 1. **Verify file exists** - CLAUDE.md should be in project root
-2. **Check formatting** - Should be valid markdown
-3. **Verify plugin paths** - All skill/workflow/command references should exist
-4. **Confirm accuracy** - Detected technologies should match actual dependencies
+2. **Check markdown formatting** - Valid markdown structure
+3. **Verify all paths exist** - Skill/workflow/command references
+4. **Confirm accuracy** - Detected tech matches actual dependencies
+5. **Check frontmatter extraction** - All skills have descriptions
+6. **Validate critical rules** - Rules are properly formatted
+7. **Test links** - Any relative links should resolve
 
-## Generic Plugin Discovery Example
+## Enhanced Examples
 
-The workflow works with any marketplace plugins. Here's how it processes plugins generically:
+### Skill Frontmatter Example
 
-```javascript
-// Generic dependency extraction with version detection
-function extractDependencies(packageJson) {
-  const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
-  return Object.entries(deps).map(([name, version]) => {
-    const majorVersion = version.replace(/^[\^~]/, '').split('.')[0];
-    return { name, version, majorVersion };
-  });
-}
+Input `SKILL.md`:
+```markdown
+---
+name: latest-nextjs
+description: Latest Next.js 16 features, App Router, Server Components
+updated: 2026-01-11
+---
 
-// Generic plugin scanning - works for ANY marketplace
-function scanMarketplace(marketplacePath) {
-  const marketplaceConfig = readJson(`${marketplacePath}/marketplace.json`);
-  const plugins = [];
+# Latest Next.js Skill
 
-  for (const pluginRef of marketplaceConfig.plugins) {
-    const pluginPath = `${marketplacePath}/${pluginRef.source}`;
-    const pluginConfig = readJson(`${pluginPath}/.claude-plugin/plugin.json`);
-
-    plugins.push({
-      name: pluginConfig.name,
-      description: pluginConfig.description,
-      keywords: pluginConfig.keywords || [],
-      skills: pluginRef.skills || [],
-      commands: pluginRef.commands || [],
-      workflows: discoverWorkflows(pluginPath) // Scan workflows/ directory
-    });
-  }
-
-  return plugins;
-}
-
-// Generic matching - works for ANY technology
-function matchPlugins(plugins, detectedTech) {
-  return plugins.filter(plugin => {
-    const techLower = detectedTech.toLowerCase();
-    return plugin.keywords.some(kw => kw.toLowerCase().includes(techLower)) ||
-           plugin.description.toLowerCase().includes(techLower);
-  });
-}
-
-// Detect quality gates from package.json scripts
-function detectQualityGates(packageJson) {
-  const scripts = packageJson.scripts || {};
-  const packageManager = detectPackageManager();
-
-  const qualityGates = {
-    typecheck: null,
-    lint: null,
-    build: null,
-    test: null
-  };
-
-  // For each category, search scripts for matching names
-  // Patterns are checked in priority order, first match wins
-  const categories = [
-    { key: 'typecheck', patterns: ['typecheck', 'check', 'validate'] },
-    { key: 'lint', patterns: ['lint', 'lint:fix'] },
-    { key: 'build', patterns: ['build', 'compile', 'bundle'] },
-    { key: 'test', patterns: ['test', 'test:unit', 'test:e2e'] }
-  ];
-
-  for (const category of categories) {
-    for (const pattern of category.patterns) {
-      if (scripts[pattern]) {
-        qualityGates[category.key] = `${packageManager} run ${pattern}`;
-        break;
-      }
-    }
-  }
-
-  return qualityGates;
-}
-
-// Detect package manager from lockfile
-function detectPackageManager() {
-  // Check for lockfiles in priority order
-  const lockfiles = [
-    { file: 'bun.lockb', manager: 'bun' },
-    { file: 'pnpm-lock.yaml', manager: 'pnpm' },
-    { file: 'yarn.lock', manager: 'yarn' },
-    { file: 'package-lock.json', manager: 'npm' }
-  ];
-
-  for (const { file, manager } of lockfiles) {
-    if (exists(file)) return manager;
-  }
-
-  return 'npm'; // default fallback
-}
+[...content...]
 ```
 
-## Notes
+Output in CLAUDE.md:
+```markdown
+| Skill | Plugin | Purpose | Updated |
+|-------|--------|---------|---------|
+| `latest-nextjs` | nextjs | Latest Next.js 16 features, App Router, Server Components | 2026-01-11 |
+```
 
-- This workflow is **completely generic** - it discovers plugins dynamically from `marketplace.json`
-- No technologies are hardcoded; matching uses `keywords` and `description` from each plugin
-- The workflow will automatically work with any new plugins added to the marketplace
-- Updates preserve user-added content while refreshing generated sections
+### Critical Rules Extraction Example
+
+From `playwright-test/SKILL.md`:
+```markdown
+## Base URL Configuration
+
+**CRITICAL**: Base URLs should be configured in the Playwright config file(s), never in test files.
+
+**DON'T** - Never add `webServer` configuration:
+```typescript
+// ❌ WRONG - Do not configure webServer
+export default defineConfig({
+  webServer: { command: "pnpm start" }
+});
+```
+
+**DO** - The config file already handles base URL:
+```typescript
+// ✅ CORRECT - Server managed externally
+export default defineConfig({
+  use: { baseURL }
+});
+```
+```
+
+Output in CLAUDE.md:
+```markdown
+## Critical Rules
+
+### Playwright Testing
+
+- **CRITICAL**: Base URLs configured in config files, never in test files
+- **NEVER** add `webServer` configuration - server is managed externally
+- **ALWAYS** use root-relative paths in test files (e.g., `await page.goto("/")`)
+- **NEVER** hardcode `localhost` URLs - use environment variables
+```
+
+### Version Context Example
+
+From `latest-nextjs/SKILL.md`:
+```markdown
+## Next.js 16 (Released October 2025)
+
+### Breaking Changes
+
+#### Async Route Parameters (Breaking Change)
+
+Route parameters are now async:
+
+```tsx
+// Before Next.js 16
+export default async function Page({ params, searchParams }) {
+  const id = params.id;
+}
+
+// Next.js 16+
+export default async function Page({ params, searchParams }) {
+  const id = await params.id; // Now async!
+}
+```
+```
+
+Output in CLAUDE.md:
+```markdown
+## Version Notes
+
+### Next.js 16
+
+**Breaking Changes:**
+- Route parameters are now async - use `await params.id` instead of `params.id`
+- `middleware.ts` renamed to `proxy.ts`
+
+**Migration:**
+```bash
+npx @next/codemod@canary middleware-to-proxy
+```
+```
+
+## Implementation Notes
+
+### What Makes This Enhanced
+
+1. **Skill frontmatter extraction** - Descriptions and updated dates from SKILL.md
+2. **CLAUDE-specific sections** - Extracted from skills when explicitly marked
+3. **Critical rules aggregation** - NEVER/MUST/ALWAYS patterns from all skills
+4. **Version-aware context** - Breaking changes and new features by version
+5. **Template variable resolution** - Resolves `[package-manager]`, `[test-script]`, etc. against project
+6. **Better preservation** - Maintains user-added content during updates
+7. **Comprehensive tech stack** - Categorized with versions
+8. **Quality gates detection** - Auto-discovers validation commands
+
+### Generic Discovery
+
+This workflow works with ANY marketplace plugins:
+
+- No hardcoded technologies
+- Matching uses plugin `keywords` and `description`
+- Skills are discovered from `skills/` directories
+- Frontmatter follows YAML convention
+- CLAUDE-specific sections use standard heading patterns
