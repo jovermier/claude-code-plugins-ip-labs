@@ -19,15 +19,15 @@ This marketplace provides plugins, skills, agents, workflows, and commands for f
 
 | Plugin | Agents | Commands | Skills | Workflows | Description |
 |--------|--------|----------|--------|-----------|-------------|
-| [dev](plugins/dev/) | 13 | 11 | 3 | 7 | Core workflows, agents, commands, and todo management |
+| [dev](plugins/dev/) | 13 | 11 | 8 | 7 | Core workflows, agents, commands, skills, and todo management |
 | [coder](plugins/coder/) | - | - | 1 | - | Coder workspace environment context |
 | [astro](plugins/astro/) | - | - | 1 | - | Astro v4-v5 features, islands, content collections |
 | [react](plugins/react/) | - | - | 1 | - | React 19, React Compiler, modern hooks and patterns |
 | [nextjs](plugins/nextjs/) | - | - | 1 | - | App Router, Server Components, performance |
-| [convex](plugins/convex/) | - | - | 3 | - | Self-hosted Convex backend development |
+| [convex](plugins/convex/) | - | - | 4 | - | Self-hosted Convex backend development |
 | [playwright](plugins/playwright/) | - | - | 1 | - | E2E testing patterns and best practices |
 
-**Totals:** 13 agents, 11 commands, 11 skills, 7 workflows
+**Totals:** 13 agents, 11 commands, 17 skills, 7 workflows
 
 ## Installation
 
@@ -139,12 +139,17 @@ Manage todos with the file-based system:
 | `/project:new-blog-post` | Create new blog post |
 | `/test-ui` | Test UI component changes |
 
-### Skills (3)
+### Skills (8)
 | Skill | Purpose |
 |-------|---------|
 | `file-todos` | File-based todo system with YAML frontmatter |
 | `quality-severity` | P1/P2/P3 quality gate classification |
 | `plan-manager` | Plan lifecycle management |
+| `context7-skill-generator` | Generate skills from Context7 MCP documentation |
+| `skill-generator` | Generate production-ready Claude Code skills from descriptions |
+| `skill-reviewer` | Review skills for quality, best practices, and PDA compliance |
+| `skill-optimizer` | Refactor skills using Progressive Disclosure Architecture (80-95% token savings) |
+| `skill-architect` | Meta-orchestrator coordinating complete skill lifecycle workflows |
 
 ### Workflows (7)
 | Workflow | Purpose |

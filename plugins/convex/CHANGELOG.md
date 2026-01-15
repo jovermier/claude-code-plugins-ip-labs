@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-01-15
+
+### Added
+- **convex-self-hosting skill** - Comprehensive self-hosted Convex deployment guidance
+  - Docker and source-based deployment methods
+  - Authentication setup with @convex-dev/auth (JWT, JWKS, JWT_ISSUER)
+  - Environment variables reference (500+ lines)
+  - Production deployment considerations (security, monitoring, backups)
+  - Platform-specific guides (Fly.io, Railway, AWS, Neon, Kubernetes)
+  - Generic Coder workspace configuration with placeholder patterns
+  - 6 reference documents: deployment.md, production.md, troubleshooting.md, platforms.md, environment.md, authentication.md
+
 ## [1.0.0] - 2026-01-12
 
 ### Added
