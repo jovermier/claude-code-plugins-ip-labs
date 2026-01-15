@@ -20,14 +20,16 @@ This marketplace provides plugins, skills, agents, workflows, and commands for f
 | Plugin | Agents | Commands | Skills | Workflows | Description |
 |--------|--------|----------|--------|-----------|-------------|
 | [dev](plugins/dev/) | 13 | 11 | 8 | 7 | Core workflows, agents, commands, skills, and todo management |
-| [coder](plugins/coder/) | - | - | 1 | - | Coder workspace environment context |
+| [coder](plugins/coder/) | - | - | 2 | - | Coder workspace management and hahomelabs configuration |
 | [astro](plugins/astro/) | - | - | 1 | - | Astro v4-v5 features, islands, content collections |
 | [react](plugins/react/) | - | - | 1 | - | React 19, React Compiler, modern hooks and patterns |
 | [nextjs](plugins/nextjs/) | - | - | 1 | - | App Router, Server Components, performance |
 | [convex](plugins/convex/) | - | - | 4 | - | Self-hosted Convex backend development |
-| [playwright](plugins/playwright/) | - | - | 1 | - | E2E testing patterns and best practices |
+| [nhost](plugins/nhost/) | - | - | 2 | - | Hasura, PostgreSQL extensions, and Docker CLI |
+| [graphql](plugins/graphql/) | - | 1 | 1 | - | GraphQL workflow with codegen and type safety |
+| [playwright](plugins/playwright/) | - | - | 2 | - | E2E testing patterns and best practices |
 
-**Totals:** 13 agents, 11 commands, 17 skills, 7 workflows
+**Totals:** 13 agents, 12 commands, 22 skills, 7 workflows
 
 ## Installation
 
@@ -46,6 +48,8 @@ Then install individual plugins:
 /plugin install react@ip-labs-marketplace
 /plugin install nextjs@ip-labs-marketplace
 /plugin install convex@ip-labs-marketplace
+/plugin install nhost@ip-labs-marketplace
+/plugin install graphql@ip-labs-marketplace
 /plugin install playwright@ip-labs-marketplace
 ```
 
@@ -215,19 +219,22 @@ ip-labs-marketplace/
 │   │   │   ├── research/        # 4 research agents
 │   │   │   ├── design/          # (future expansion)
 │   │   │   ├── workflow/        # (future expansion)
-│   │   │   └── docs/            # (future expansion)
+│   │   │   └── docs/            # Documentation
 │   │   ├── commands/
 │   │   │   └── workflows/       # Workflow commands
 │   │   ├── skills/
 │   │   ├── workflows/
 │   │   ├── hooks/
+│   │   ├── indexes/            # Plan and context index templates
 │   │   └── CHANGELOG.md
-│   ├── react/
-│   ├── astro/
-│   ├── nextjs/
-│   ├── convex/
-│   ├── playwright/
-│   └── coder/
+│   ├── coder/                  # Coder workspace environment
+│   ├── react/                  # React framework skills
+│   ├── astro/                  # Astro framework skills
+│   ├── nextjs/                 # Next.js framework skills
+│   ├── convex/                 # Convex backend skills
+│   ├── nhost/                  # Hasura/PostgreSQL skills
+│   ├── graphql/                # GraphQL workflow and codegen
+│   └── playwright/             # E2E testing skills
 ├── todos/                      # File-based todos
 ├── plans/                      # Project plans
 └── docs/solutions/             # Knowledge base

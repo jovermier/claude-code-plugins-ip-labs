@@ -1,7 +1,7 @@
 {
   "name": "coder",
-  "description": "Claude Code skills for Coder development workspace environment. Linux x86_64 container runtime, Docker-in-Docker, Kubernetes CLI, and workspace-specific tools.",
-  "version": "1.0.0",
+  "description": "Claude Code skills for Coder development workspace environment. Two skills: coder-workspace-management (comprehensive Coder CLI command reference) and coder-hahomelabs (hahomelabs.com-specific configuration including PostgreSQL, S3, Convex, Nhost, LLM gateway, workspace cloning, and gotchas).",
+  "version": "1.2.0",
   "author": {
     "name": "Innovative Prospects",
     "url": "https://github.com/jovermier"
@@ -16,6 +16,27 @@
     "docker",
     "kubernetes",
     "linux",
-    "container-runtime"
+    "container-runtime",
+    "cli",
+    "workspace-management",
+    "templates",
+    "terraform",
+    "ssh",
+    "port-forwarding",
+    "scheduling",
+    "troubleshooting",
+    "postgresql",
+    "cloudnativepg",
+    "s3",
+    "ceph",
+    "convex",
+    "nhost",
+    "hasura",
+    "litellm",
+    "pm2",
+    "service-urls",
+    "coder-hahomelabs",
+    "hahomelabs",
+    "workspace-configuration"
   ]
 }
