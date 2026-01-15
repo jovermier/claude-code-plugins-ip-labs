@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "description": "Core development workflows, agents, commands, and skills for Innovative Prospects projects. Features 13 specialized agents (9 review + 4 research), parallel workflow orchestration, file-based todo system, quality gate severity levels (P1/P2/P3), knowledge compounding, and multi-language CLAUDE.md generation.",
-  "version": "1.2.0",
+  "description": "Core development workflows, agents, commands, and skills for Innovative Prospects projects. Features 13 specialized agents (9 review + 4 research), parallel workflow orchestration, file-based todo system, quality gate severity levels (P1/P2/P3), knowledge compounding, multi-language CLAUDE.md generation, and skill lifecycle management (generator, reviewer, optimizer, architect).",
+  "version": "1.3.0",
   "author": {
     "name": "Innovative Prospects",
     "url": "https://github.com/jovermier"
@@ -24,6 +24,13 @@
     "quality-gates",
     "todos",
     "multi-language",
-    "claude-md"
+    "claude-md",
+    "skills",
+    "skill-generator",
+    "skill-reviewer",
+    "skill-optimizer",
+    "skill-architect",
+    "pda",
+    "progressive-disclosure"
   ]
 }

@@ -96,6 +96,7 @@ Convex development in Coder workspaces.
 - `coder-convex` - Convex integration patterns
 - `coder-convex-setup` - Convex setup and configuration
 - `convex-chef` - Convex Chef agent integration
+- `convex-self-hosting` - Self-hosted Convex deployment, auth setup, environment config, troubleshooting, and production considerations
 
 ### Testing
 
@@ -116,7 +117,7 @@ Playwright E2E testing skills.
 | astro      | latest-astro      | -          | -       |
 | react      | latest-react      | -          | -       |
 | nextjs     | latest-nextjs     | -          | -       |
-| convex     | 3 skills          | -          | -       |
+| convex     | 4 skills          | -          | -       |
 | playwright | playwright-test   | -          | -       |
 
 ## Usage
