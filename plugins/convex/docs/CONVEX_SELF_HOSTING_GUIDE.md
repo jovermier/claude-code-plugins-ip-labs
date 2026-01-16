@@ -98,7 +98,8 @@ A complete self-hosted Convex setup requires **three services**:
 | Service | Port | Description | Cloud Equivalent |
 |---------|------|-------------|------------------|
 | **Convex Backend API** | 3210 | Main API endpoint (WebSocket + HTTP) | `*.convex.cloud` |
-| **Convex HTTP Actions** | 3211 | HTTP action endpoints | `*.convex.site` |
+| **Convex Site Proxy** | 3211 | HTTP action endpoints | `*.convex.site` |
+| **Convex S3 Proxy** | 3212 | S3-compatible file storage proxy | S3-backed storage |
 | **Convex Dashboard** | 6791 | Web-based management UI | `dashboard.convex.dev` |
 
 **Internal URLs** (accessible within backend functions):
@@ -793,6 +794,7 @@ ufw allow 443/tcp   # HTTPS
 ufw allow 22/tcp    # SSH (limit to specific IPs)
 ufw deny 3210/tcp   # Don't expose Convex API directly
 ufw deny 3211/tcp   # Don't expose site proxy directly
+ufw deny 3212/tcp   # Don't expose S3 proxy directly
 ufw deny 6791/tcp   # Don't expose dashboard publicly
 ufw enable
 ```
@@ -2261,7 +2263,8 @@ https://<slug>--<workspace>--<owner>.coder.<domain>
 |------|------|--------------|-------------|------------|
 | `convex` | 6791 | Convex Dashboard | `https://convex--<workspace>--<owner>.coder.<domain>` | Public |
 | `convex-api` | 3210 | Convex API | `https://convex-api--<workspace>--<owner>.coder.<domain>` | Public (hidden) |
-| `convex-proxy` | 3211 | Convex Proxy | `https://convex-proxy--<workspace>--<owner>.coder.<domain>` | Public (hidden) |
+| `convex-site` | 3211 | Convex Site Proxy | `https://convex-site--<workspace>--<owner>.coder.<domain>` | Public (hidden) |
+| `convex-s3-proxy` | 3212 | Convex S3 Proxy | `https://convex-s3-proxy--<workspace>--<owner>.coder.<domain>` | Public (hidden) |
 
 > **Note**: Replace `<workspace>`, `<owner>`, and `<domain>` with your specific Coder environment values.
 

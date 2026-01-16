@@ -102,7 +102,8 @@ S3_BACKUP_BUCKET   # workspace-cnpg-${owner}-${name}-${short_id}
 When enabled:
 - **Dashboard** (`/convex`): `https://convex--<workspace>--<user>.coder.hahomelabs.com`
 - **API** (`/convex-api`): `https://convex-api--<workspace>--<user>.coder.hahomelabs.com`
-- **Proxy** (`/convex-proxy`): `https://convex-proxy--<workspace>--<user>.coder.hahomelabs.com`
+- **Site Proxy** (`/convex-site`): `https://convex-site--<workspace>--<user>.coder.hahomelabs.com`
+- **S3 Proxy** (`/convex-s3-proxy`): `https://convex-s3-proxy--<workspace>--<user>.coder.hahomelabs.com`
 - Convex CLI available via `npx convex`
 - Uses internal PostgreSQL and S3
 

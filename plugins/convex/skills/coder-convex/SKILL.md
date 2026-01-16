@@ -26,8 +26,8 @@ This workspace uses a **self-hosted Convex deployment** (not the convex.dev clou
 7. **Available Services** (via Coder apps):
    - **Convex Dashboard** (port 6791): Main Convex dashboard UI
    - **Convex API** (port 3210, hidden): Backend API endpoint
-   - **Convex S3 Proxy** (port 3211, hidden): S3-compatible storage proxy
-   - **Convex Auth Proxy** (port 3212, hidden): Authentication proxy service
+   - **Convex Site Proxy** (port 3211, hidden): HTTP action endpoints
+   - **Convex S3 Proxy** (port 3212, hidden): S3-compatible file storage proxy
 
 ## Required Scripts
 
