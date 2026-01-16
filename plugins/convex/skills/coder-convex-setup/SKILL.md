@@ -106,8 +106,10 @@ services:
   backend:
     image: convex-dev/convex:latest
     ports:
-      - "3210:3210"
-      - "3211:3211"
+      - "3210:3210"    # Convex API
+      - "3211:3211"    # Convex S3 Proxy
+      - "3212:3212"    # Convex Auth Proxy
+      - "6791:6791"    # Convex Dashboard
     environment:
       - CONVEX_LOG_LEVEL=debug
     volumes:
@@ -119,6 +121,12 @@ volumes:
 ```
 
 **Note**: The exact image and configuration may vary based on your self-hosted Convex setup.
+
+**Port Reference**:
+- `3210` - Convex Backend API
+- `3211` - Convex S3 Proxy (for file storage)
+- `3212` - Convex Auth Proxy (for authentication)
+- `6791` - Convex Dashboard (web UI)
 
 ## Step 5: Create Environment Generation Script
 
@@ -298,8 +306,10 @@ After setup, verify:
 docker logs <container-name>
 
 # Check if ports are already in use
-lsof -i :3210
-lsof -i :3211
+lsof -i :3210    # Convex API
+lsof -i :3211    # Convex S3 Proxy
+lsof -i :3212    # Convex Auth Proxy
+lsof -i :6791    # Convex Dashboard
 
 # Recreate container
 [package-manager] run [docker-down-script]

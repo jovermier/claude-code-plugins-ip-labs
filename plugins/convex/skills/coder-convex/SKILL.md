@@ -23,6 +23,11 @@ This workspace uses a **self-hosted Convex deployment** (not the convex.dev clou
 4. **Admin Key**: Generated via `docker exec` commands
 5. **Environment Variables**: Managed via `.env` files (requires user confirmation)
 6. **CLI Limitations**: The Convex CLI (`npx convex`) is designed primarily for Convex Cloud and has **limited support for self-hosted backends**. Some commands may not work as expected with self-hosted deployments.
+7. **Available Services** (via Coder apps):
+   - **Convex Dashboard** (port 6791): Main Convex dashboard UI
+   - **Convex API** (port 3210, hidden): Backend API endpoint
+   - **Convex S3 Proxy** (port 3211, hidden): S3-compatible storage proxy
+   - **Convex Auth Proxy** (port 3212, hidden): Authentication proxy service
 
 ## Required Scripts
 
