@@ -1,6 +1,6 @@
 ---
 name: coder-hahomelabs
-description: Coder workspace environment for hahomelabs.com deployments
+description: Coder workspace environment for hahomelabs.com deployments. Includes networking, ports, convex config, nhost config
 ---
 
 # Coder Workspace Environment (hahomelabs.com)

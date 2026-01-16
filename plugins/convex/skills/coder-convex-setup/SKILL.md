@@ -1,3 +1,9 @@
+---
+name: coder-convex-setup
+description: Initial Convex workspace setup in Coder workspaces with self-hosted Convex deployment, authentication configuration, Docker setup, and environment variable generation
+updated: 2026-01-16
+---
+
 # Coder-Convex-Setup: Initial Convex Workspace Setup in Coder
 
 You are an expert at **initial setup and configuration** of self-hosted Convex in Coder workspaces. This skill is ONLY for the one-time setup of a new Convex workspace. For everyday Convex development, use the `coder-convex` skill instead.
@@ -34,12 +40,7 @@ Before setting up Convex in a Coder workspace, ensure:
    docker compose version
    ```
 
-3. **PM2 is installed** (for frontend process management):
-   ```bash
-   pm2 --version
-   ```
-
-4. **Project has package.json with Convex dependency**:
+3. **Project has package.json with Convex dependency**:
    ```json
    {
      "dependencies": {
@@ -48,11 +49,27 @@ Before setting up Convex in a Coder workspace, ensure:
    }
    ```
 
+## Coder Workspace Services Overview
+
+In a Coder workspace, Convex is exposed through multiple services. Understanding these is critical:
+
+| Slug | Display Name | Internal URL | Port | Hidden | Purpose |
+|------|-------------|--------------|------|--------|---------|
+| `convex-dashboard` | Convex Dashboard | `localhost:6791` | 6791 | No | Admin dashboard |
+| `convex-api` | Convex API | `localhost:3210` | 3210 | **Yes** | Main API endpoints |
+| `convex-site` | Convex Site | `localhost:3211` | 3211 | **Yes** | **Site Proxy (Auth)** |
+| `convex-s3-proxy` | Convex S3 Proxy | `localhost:3212` | 3212 | **Yes** | S3 file storage (not auth) |
+
+**Critical:** Port 3211 is the **auth/site proxy** port, NOT port 3212. Port 3212 is for S3 proxy functionality only.
+
 ## Step 1: Install Convex Dependencies
 
 ```bash
 # Install Convex package
 [package-manager] add convex
+
+# Install auth dependencies (required for Coder workspaces)
+[package-manager] add @convex-dev/auth
 
 # Install dev dependencies if not present
 [package-manager] add -D @types/node typescript
@@ -71,7 +88,9 @@ The structure should look like:
 ```
 convex/
 ├── lib/                  # Internal utilities (optional)
-└── schema.ts            # Database schema (required)
+├── schema.ts            # Database schema (required)
+├── auth.config.ts       # Auth configuration (required for Coder)
+└── auth.ts              # Auth setup (required for Coder)
 ```
 
 ## Step 3: Create Initial Schema
@@ -81,239 +100,366 @@ Create [convex/schema.ts](convex/schema.ts):
 ```typescript
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
-export default defineSchema({
-  // Start with an empty schema or add initial tables
+// Your application tables
+const applicationTables = {
+  // Add your tables here
   tasks: defineTable({
     title: v.string(),
     status: v.string(),
   }).index("by_status", ["status"]),
+};
+
+export default defineSchema({
+  ...authTables,
+  ...applicationTables,
 });
 ```
 
 **Key Schema Rules**:
+- Always include `...authTables` from `@convex-dev/auth/server` for Coder workspaces
 - Never manually add `_id` or `_creationTime` - they're automatic
 - Index names should be descriptive: `by_fieldName`
 - All indexes automatically include `_creationTime` as the last field
 - Don't use `.index("by_creation_time", ["_creationTime"])` - it's built-in
 
-## Step 4: Create Docker Compose Configuration
+## Step 4: Create Auth Configuration
 
-Create [docker-compose.yml](docker-compose.yml) for self-hosted Convex:
+Create [convex/auth.config.ts](convex/auth.config.ts):
+
+```typescript
+export default {
+  providers: [
+    {
+      domain: process.env.CONVEX_SITE_URL,
+      applicationID: "convex",
+    },
+  ],
+};
+```
+
+**Critical:** The `domain` must use `CONVEX_SITE_URL` which points to the **API URL** (port 3210), not the site proxy URL. Auth endpoints are served at `/api/auth/*` on the API.
+
+Create [convex/auth.ts](convex/auth.ts):
+
+```typescript
+import { query } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
+
+export const currentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return null;
+    }
+    return await ctx.db.get(userId);
+  },
+});
+```
+
+## Step 5: Create Coder Setup Script
+
+Create [scripts/setup-convex.sh](scripts/setup-convex.sh):
+
+```bash
+#!/bin/bash
+
+# Detect Coder workspace environment
+if [ -n "$CODER_WORKSPACE_NAME" ]; then
+  # Running in Coder workspace
+  WORKSPACE_NAME="${CODER_WORKSPACE_NAME}"
+  USERNAME="${CODER_USERNAME}"
+  CODER_DOMAIN="${CODER_DOMAIN:-coder.hahomelabs.com}"
+  CODER_PROTOCOL="${CODER_PROTOCOL:-https}"
+
+  # Generate Coder-specific URLs
+  CONVEX_API_URL="${CODER_PROTOCOL}://convex-api--${WORKSPACE_NAME}--${USERNAME}.${CODER_DOMAIN}"
+  CONVEX_SITE_URL="${CODER_PROTOCOL}://convex-site--${WORKSPACE_NAME}--${USERNAME}.${CODER_DOMAIN}"
+  CONVEX_DASHBOARD_URL="${CODER_PROTOCOL}://convex--${WORKSPACE_NAME}--${USERNAME}.${CODER_DOMAIN}"
+else
+  # Local development
+  CONVEX_API_URL="http://localhost:3210"
+  CONVEX_SITE_URL="http://localhost:3211"
+  CONVEX_DASHBOARD_URL="http://localhost:6791"
+fi
+
+# Generate admin key
+CONVEX_ADMIN_KEY="${CONVEX_ADMIN_KEY:-sk_admin_$(openssl rand -hex 32)}"
+
+# Generate JWT private key for auth
+if [ ! -f .jwt_private_key ]; then
+  openssl genrsa -out .jwt_private_key 2048 2>/dev/null
+fi
+JWT_PRIVATE_KEY_BASE64=$(base64 -w 0 .jwt_private_key 2>/dev/null || echo "")
+
+# Create .env.convex.local
+cat > .env.convex.local << ENVEOF
+# Coder Workspace URLs (for remote users)
+CONVEX_CLOUD_ORIGIN=${CONVEX_API_URL}
+CONVEX_SITE_ORIGIN=${CONVEX_SITE_URL}
+CONVEX_SITE_URL=${CONVEX_API_URL}
+CONVEX_DEPLOYMENT_URL=${CONVEX_API_URL}
+
+# Frontend Configuration
+VITE_CONVEX_URL=${CONVEX_API_URL}
+
+# Admin Key
+CONVEX_SELF_HOSTED_ADMIN_KEY=${CONVEX_ADMIN_KEY}
+
+# JWT Configuration (for auth)
+JWT_ISSUER=${CONVEX_SITE_URL}
+JWT_PRIVATE_KEY_BASE64=${JWT_PRIVATE_KEY_BASE64}
+
+# Database (if using PostgreSQL)
+POSTGRES_URL=${POSTGRES_URL:-postgresql://convex:convex@localhost:5432/convex?sslmode=disable}
+ENVEOF
+
+echo "Convex environment configured!"
+echo "API URL: ${CONVEX_API_URL}"
+echo "Site URL: ${CONVEX_SITE_URL}"
+echo "Dashboard URL: ${CONVEX_DASHBOARD_URL}"
+echo "Admin Key: ${CONVEX_ADMIN_KEY:0:20}..."
+```
+
+Make it executable and run:
+
+```bash
+chmod +x scripts/setup-convex.sh
+./scripts/setup-convex.sh
+```
+
+## Step 6: Create Docker Compose Configuration
+
+Create [docker-compose.convex.yml](docker-compose.convex.yml):
 
 ```yaml
 services:
   backend:
     image: convex-dev/convex:latest
     ports:
-      - "3210:3210"    # Convex API
-      - "3211:3211"    # Convex Site Proxy
-      - "3212:3212"    # Convex S3 Proxy
-      - "6791:6791"    # Convex Dashboard
+      - "3210:3210"  # API port
+      - "3211:3211"  # Site proxy port (auth)
+      - "6791:6791"  # Dashboard port
     environment:
-      - CONVEX_LOG_LEVEL=debug
+      - CONVEX_LOG_LEVEL=info
+      - CONVEX_CLOUD_ORIGIN=${CONVEX_CLOUD_ORIGIN}
+      - CONVEX_SITE_ORIGIN=${CONVEX_SITE_ORIGIN}
+      - CONVEX_SITE_URL=${CONVEX_SITE_URL}
+      - CONVEX_DEPLOYMENT_URL=${CONVEX_DEPLOYMENT_URL}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_PRIVATE_KEY_BASE64=${JWT_PRIVATE_KEY_BASE64}
+      - POSTGRES_URL=${POSTGRES_URL}
     volumes:
       - convex_data:/convex/data
+      - ./.jwt_private_key:/convex/jwt_private_key:ro
     restart: unless-stopped
+    command: >
+      convex backend
+      --port 3210
+      --site-proxy-port 3211
+      --convex-origin "$CONVEX_CLOUD_ORIGIN"
+      --convex-site "$CONVEX_SITE_ORIGIN"
+      --udf-serving-url "$CONVEX_SITE_URL"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=convex
+      - POSTGRES_PASSWORD=convex
+      - POSTGRES_DB=convex
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
 
 volumes:
   convex_data:
+  postgres_data:
 ```
 
-**Note**: The exact image and configuration may vary based on your self-hosted Convex setup.
+**Critical Flags Explained:**
+- `--port 3210`: API port for all Convex communication
+- `--site-proxy-port 3211`: Site proxy port for HTTP routes and auth
+- `--convex-origin`: External URL for the API (for internal Convex communication)
+- `--convex-site`: External URL for the site proxy (for auth provider discovery)
 
-**Port Reference**:
-- `3210` - Convex Backend API
-- `3211` - Convex Site Proxy (for HTTP actions)
-- `3212` - Convex S3 Proxy (for file storage)
-- `6791` - Convex Dashboard (web UI)
+## Step 7: Create Startup Script
 
-## Step 5: Create Environment Generation Script
-
-Create [generate-env.js](generate-env.js) to generate environment variables:
-
-```javascript
-import fs from 'fs';
-import crypto from 'crypto';
-
-// Generate or load deployment URL
-const CONVEX_DEPLOYMENT = process.env.CONVEX_DEPLOYMENT || 'http://localhost:3210';
-
-// Generate admin key if not provided
-const CONVEX_ADMIN_KEY = process.env.CONVEX_ADMIN_KEY ||
-  `sk_admin_${crypto.randomBytes(32).toString('hex')}`;
-
-// LiteLLM configuration (self-hosted AI proxy)
-const LITELLM_BASE_URL = process.env.LITELLM_BASE_URL || 'https://llm-gateway.hahomelabs.com';
-const LITELLM_APP_API_KEY = process.env.LITELLM_APP_API_KEY || '';
-
-// OpenAI for embeddings (optional, for RAG)
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-
-// Feature flags
-const ENABLE_RAG = process.env.ENABLE_RAG || 'false';
-
-const envContent = `
-# Convex Self-Hosted Deployment
-CONVEX_DEPLOYMENT=${CONVEX_DEPLOYMENT}
-CONVEX_ADMIN_KEY=${CONVEX_ADMIN_KEY}
-
-# LiteLLM (Self-Hosted AI Proxy)
-LITELLM_BASE_URL=${LITELLM_BASE_URL}
-LITELLM_APP_API_KEY=${LITELLM_APP_API_KEY}
-
-# OpenAI (for RAG embeddings - optional)
-OPENAI_API_KEY=${OPENAI_API_KEY}
-
-# Feature Flags
-ENABLE_RAG=${ENABLE_RAG}
-`.trim();
-
-fs.writeFileSync('.env', envContent);
-console.log('.env file generated successfully');
-console.log(`CONVEX_DEPLOYMENT: ${CONVEX_DEPLOYMENT}`);
-console.log(`CONVEX_ADMIN_KEY: ${CONVEX_ADMIN_KEY.slice(0, 20)}...`);
-```
-
-Make it executable and run:
+Create [start-convex-backend.sh](start-convex-backend.sh):
 
 ```bash
-chmod +x generate-env.js
-node generate-env.js
-```
+#!/bin/bash
 
-## Step 6: Generate Admin Key from Docker
+# Load environment
+if [ -f .env.convex.local ]; then
+  set -a
+  source .env.convex.local
+  set +a
+fi
 
-After starting Docker services, generate an admin key:
-
-```bash
 # Start Docker services
-[package-manager] run [docker-up-script]
+docker compose -f docker-compose.convex.yml up -d
 
-# Generate admin key from container
-docker exec <container-name> /convex/generate_admin_key.sh
+echo "Waiting for Convex backend to be healthy..."
+until curl -s http://localhost:3210/version > /dev/null 2>&1; do
+  echo "Waiting for Convex API..."
+  sleep 2
+done
+
+echo "Convex backend is running!"
+echo "Dashboard: ${CONVEX_DASHBOARD_URL:-http://localhost:6791}"
 ```
 
-Add the generated key to your `.env` file:
-
-```bash
-# In .env
-CONVEX_ADMIN_KEY=<generated-key>
-```
-
-## Step 7: Add NPM Scripts
+## Step 8: Add NPM Scripts
 
 Add these scripts to your [package.json](package.json):
 
 ```json
 {
   "scripts": {
-    "dev:backend": "npx convex dev",
-    "deploy:functions": "npx convex deploy --yes",
-    "docker:up": "docker compose --env-file .env.docker up -d",
-    "docker:down": "docker compose --env-file .env.docker down",
-    "docker:logs": "docker compose --env-file .env.docker logs -f",
-    "docker:generate-admin-key": "docker exec <container-name> /convex/generate_admin_key.sh",
-    "generate-env": "node generate-env.js"
+    "convex:start": "./scripts/setup-convex.sh && ./start-convex-backend.sh",
+    "convex:stop": "docker compose -f docker-compose.convex.yml down",
+    "convex:logs": "docker compose -f docker-compose.convex.yml logs -f backend",
+    "convex:status": "docker compose -f docker-compose.convex.yml ps",
+    "dev:backend": "npx convex dev --cmd 'node -e \"process.exit(0)\"'",
+    "deploy:functions": "npx convex deploy --yes"
   }
 }
 ```
 
-**Note**: Replace `<container-name>` with your actual Docker container name.
-
-## Step 8: Initialize Convex Deployment
+## Step 9: Initialize Convex Deployment
 
 ```bash
-# Generate environment file
-[package-manager] run [generate-env-script]
+# Setup environment and start backend
+[package-manager] run convex:start
 
-# Start Docker services
-[package-manager] run [docker-up-script]
-
-# Wait for services to be healthy, then initialize
-[package-manager] run [dev-backend-script]
+# Initialize Convex (creates schema, generates types)
+[package-manager] run dev:backend
 ```
 
 This will:
-1. Connect to the self-hosted Convex deployment
-2. Create the database schema
-3. Generate type definitions in `convex/_generated/`
+1. Generate Coder-specific environment variables
+2. Start Docker services with correct configuration
+3. Create the database schema
+4. Generate type definitions in `convex/_generated/`
 
-## Step 9: Deploy Functions
+## Step 10: Deploy Functions
 
 ```bash
-[package-manager] run [deploy-functions-script]
+[package-manager] run deploy:functions
 ```
 
 This deploys your Convex functions to the self-hosted backend.
 
-## Step 10: Verify Setup
+## Step 11: Create Frontend Integration
 
-Create a test query to verify everything works:
+Create or update [src/main.tsx](src/main.tsx):
 
 ```typescript
-// convex/test.ts
-import { query } from "./_generated/server";
+import { ConvexReactClient } from "convex/react";
+import { ConvexProviderWithAuth } from "convex/react";
+import React from "react";
+import ReactDOM from "react-dom/client";
 
-export const healthCheck = query({
-  args: {},
-  handler: async () => {
-    return {
-      status: "ok",
-      timestamp: Date.now(),
-    };
-  },
-});
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <ConvexProviderWithAuth client={convex}>
+      <App />
+    </ConvexProviderWithAuth>
+  </React.StrictMode>
+);
 ```
 
-Deploy and test:
+Create [src/App.tsx](src/App.tsx):
 
-```bash
-[package-manager] run [deploy-functions-script]
+```typescript
+import { useQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
+import { SignInButton, SignOutButton, useAuth } from "@convex-dev/auth/react";
+
+export default function App() {
+  const { isAuthenticated } = useAuth();
+  const tasks = useQuery(api.tasks.list) || [];
+
+  return (
+    <main>
+      <h1>Convex in Coder</h1>
+      {isAuthenticated ? (
+        <>
+          <p>Welcome!</p>
+          <SignOutButton />
+          <ul>
+            {tasks.map(task => (
+              <li key={task._id}>{task.title}</li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <SignInButton />
+      )}
+    </main>
+  );
+}
 ```
 
 ## Verification Checklist
 
 After setup, verify:
 
+- [ ] `.env.convex.local` exists with correct Coder URLs
 - [ ] `convex/_generated/` directory exists with type definitions
-- [ ] `convex/schema.ts` defines your tables
-- [ ] `.env` file contains `CONVEX_DEPLOYMENT` and `CONVEX_ADMIN_KEY`
+- [ ] `convex/schema.ts` includes `...authTables`
+- [ ] `convex/auth.config.ts` uses `CONVEX_SITE_URL` for domain
 - [ ] Docker services are running: `docker ps`
-- [ ] Can run `[package-manager] run [dev-backend-script]` without errors
-- [ ] Can run `[package-manager] run [deploy-functions-script]` successfully
+- [ ] Can access API: `curl http://localhost:3210/version`
+- [ ] Can access site proxy: `curl http://localhost:3211/`
+- [ ] Can run `[package-manager] run dev:backend` without errors
+- [ ] Can run `[package-manager] run deploy:functions` successfully
 - [ ] Frontend can import from `convex/_generated/api`
 
 ## Troubleshooting Setup Issues
 
-### Issue: `CONVEX_DEPLOYMENT not set`
+### Issue: Authentication fails
 
-**Solution**: Run `[package-manager] run [generate-env-script]` and verify `.env` exists.
+**Solution**: Verify your environment variables:
+```bash
+grep "CONVEX_SITE" .env.convex.local
+# CONVEX_SITE_ORIGIN should point to convex-site URL
+# CONVEX_SITE_URL should point to convex-api URL
+```
 
-### Issue: `Invalid admin key`
+### Issue: `CONVEX_SITE_URL not set`
 
-**Solution**:
-1. Run `pnpm docker:generate-admin-key`
-2. Copy the generated key
-3. Update `.env` with the new key
-4. Restart Docker services
+**Solution**: Run `./scripts/setup-convex.sh` to regenerate environment.
+
+### Issue: Port 3211 not accessible
+
+**Solution**: Verify Docker is running the site proxy:
+```bash
+docker ps | grep 3211
+curl http://localhost:3211/
+```
 
 ### Issue: Docker container not starting
 
 **Solution**:
 ```bash
 # Check container logs
-docker logs <container-name>
+[package-manager] run convex:logs
 
 # Check if ports are already in use
-lsof -i :3210    # Convex API
-lsof -i :3211    # Convex Site Proxy
-lsof -i :3212    # Convex S3 Proxy
-lsof -i :6791    # Convex Dashboard
+lsof -i :3210
+lsof -i :3211
+lsof -i :6791
 
 # Recreate container
-[package-manager] run [docker-down-script]
-[package-manager] run [docker-up-script]
+[package-manager] run convex:stop
+[package-manager] run convex:start
 ```
 
 ### Issue: Type definitions not generating
@@ -324,10 +470,10 @@ lsof -i :6791    # Convex Dashboard
 rm -rf convex/_generated
 
 # Re-run dev backend
-[package-manager] run [dev-backend-script]
+[package-manager] run dev:backend
 
 # Or explicitly deploy
-[package-manager] run [deploy-functions-script]
+[package-manager] run deploy:functions
 ```
 
 ### Issue: Cannot connect to Convex deployment
@@ -338,70 +484,90 @@ rm -rf convex/_generated
 docker ps
 
 # Check deployment URL is correct
-echo $CONVEX_DEPLOYMENT
+grep CONVEX .env.convex.local
 
 # Test connection
-curl $CONVEX_DEPLOYMENT/health
+curl $CONVEX_CLOUD_ORIGIN/version
+curl $CONVEX_SITE_ORIGIN/
 ```
 
-## Self-Hosted vs Convex Cloud
+## Coder Workspace URL Patterns
 
-| Aspect | Self-Hosted | Convex Cloud |
-|--------|-------------|--------------|
-| **Deployment URL** | Custom (e.g., `http://localhost:3210`) | `*.convex.cloud` |
-| **Dashboard** | None (CLI only) | Web dashboard at convex.dev |
-| **Admin Key** | Generated via Docker | Auto-provisioned |
-| **Environment Variables** | `.env` file | Dashboard UI |
-| **Authentication** | Custom setup | Built-in |
-| **CLI Support** | Limited - CLI designed for Convex Cloud | Full support |
-| **Cost** | Self-managed infrastructure | Usage-based pricing |
+### Internal (Localhost)
 
-> **IMPORTANT**: The Convex CLI (`npx convex`) is designed primarily for Convex Cloud and has **limited support for self-hosted backends**. Some CLI commands may not work correctly with self-hosted deployments. Environment-based configuration and direct API interaction are often required instead.
+| Service | URL |
+|---------|-----|
+| Convex API | `http://localhost:3210` |
+| Site Proxy (Auth) | `http://localhost:3211` |
+| S3 Proxy | `http://localhost:3212` |
+| Dashboard | `http://localhost:6791` |
+
+### External (Coder Proxy)
+
+| Service | URL Pattern | Example |
+|---------|-------------|---------|
+| Convex API | `https://convex-api--<workspace>--<user>.<domain>` | `https://convex-api--myproject--johndoe.coder.hahomelabs.com` |
+| Convex Site | `https://convex-site--<workspace>--<user>.<domain>` | `https://convex-site--myproject--johndoe.coder.hahomelabs.com` |
+| Convex Dashboard | `https://convex--<workspace>--<user>.<domain>` | `https://convex--myproject--johndoe.coder.hahomelabs.com` |
 
 ## Environment Variables Reference
 
-### Required for Self-Hosted Convex
+### Required for Coder Convex
 
 ```bash
-# Convex Deployment
-CONVEX_DEPLOYMENT=<deployment-url>    # e.g., http://localhost:3210
-CONVEX_ADMIN_KEY=<admin-key>          # Generated from Docker
+# Coder Workspace URLs (auto-generated by setup script)
+CONVEX_CLOUD_ORIGIN=<convex-api URL>       # e.g., https://convex-api--...coder.hahomelabs.com
+CONVEX_SITE_ORIGIN=<convex-site URL>       # e.g., https://convex-site--...coder.hahomelabs.com
+CONVEX_SITE_URL=<convex-api URL>           # Same as CONVEX_CLOUD_ORIGIN (used by auth.config.ts)
+CONVEX_DEPLOYMENT_URL=<convex-api URL>     # Same as CONVEX_CLOUD_ORIGIN
 
-# AI Services (if using)
-LITELLM_BASE_URL=<proxy-url>          # e.g., https://llm-gateway.hahomelabs.com
-LITELLM_APP_API_KEY=<api-key>
-OPENAI_API_KEY=<openai-key>           # For embeddings/RAG
+# Frontend Configuration
+VITE_CONVEX_URL=<convex-api URL>           # Same as CONVEX_CLOUD_ORIGIN
+
+# Admin Key
+CONVEX_SELF_HOSTED_ADMIN_KEY=<admin-key>   # Auto-generated
+
+# JWT Configuration (for auth)
+JWT_ISSUER=<convex-site URL>               # Same as CONVEX_SITE_ORIGIN
+JWT_PRIVATE_KEY_BASE64=<base64-key>        # Auto-generated
+
+# Database (if using PostgreSQL)
+POSTGRES_URL=<postgres-connection-string>  # e.g., postgresql://convex:convex@localhost:5432/convex
 ```
 
-### Optional Feature Flags
+### Critical Variable Relationships
 
-```bash
-ENABLE_RAG=true/false                 # Enable RAG functionality
 ```
+CONVEX_CLOUD_ORIGIN = CONVEX_SITE_URL = CONVEX_DEPLOYMENT_URL = VITE_CONVEX_URL (all point to convex-api)
+CONVEX_SITE_ORIGIN = JWT_ISSUER (both point to convex-site)
+```
+
+**Why this works:**
+- All Convex client communication goes through the API (port 3210)
+- Auth endpoints are `/api/auth/*` on the API
+- The site proxy (port 3211) is for HTTP routes and internal Convex communication
+- The `domain` in `auth.config.ts` uses `CONVEX_SITE_URL` (API URL) because auth endpoints are on the API
 
 ## Docker Commands Reference
 
 ```bash
 # Start services
-[package-manager] run [docker-up-script]                    # or: docker compose up -d
+[package-manager] run convex:start                    # Setup and start all services
 
 # Stop services
-[package-manager] run [docker-down-script]                  # or: docker compose down
+[package-manager] run convex:stop                     # Stop all services
 
 # View logs
-[package-manager] run [docker-logs-script]                  # or: docker compose logs -f
+[package-manager] run convex:logs                     # View backend logs
+
+# Check status
+[package-manager] run convex:status                   # Check container status
 
 # Restart services
-docker compose restart
-
-# Check container status
-docker ps
+docker compose -f docker-compose.convex.yml restart
 
 # Execute command in container
-docker exec <container-name> <command>
-
-# Generate admin key
-docker exec <container-name> /convex/generate_admin_key.sh
+docker exec -it <container-name> sh
 ```
 
 ## Post-Setup: Next Steps
@@ -409,32 +575,36 @@ docker exec <container-name> /convex/generate_admin_key.sh
 After completing the setup:
 
 1. **Switch to `coder-convex` skill** for everyday development
-2. **Define your schema** in `convex/schema.ts`
+2. **Define your schema** in `convex/schema.ts` (in `applicationTables`)
 3. **Write queries and mutations** in `convex/*.ts` files
 4. **Integrate with React** using `convex/react` hooks
-5. **Deploy functions** with `[package-manager] run [deploy-functions-script]`
+5. **Deploy functions** with `[package-manager] run deploy:functions]`
 
 ## Common Setup Patterns
 
-### Pattern 1: Minimal Setup
-
-For quick prototyping without authentication:
+### Pattern 1: Minimal Setup with Auth
 
 ```typescript
 // convex/schema.ts
-export default defineSchema({
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
+
+const applicationTables = {
   tasks: defineTable({
     title: v.string(),
     status: v.string(),
-  }).index("by_status", ["status"]),
+    userId: v.id("users"),
+  }).index("by_user", ["userId"]),
+};
+
+export default defineSchema({
+  ...authTables,
+  ...applicationTables,
 });
 ```
 
-### Pattern 2: With Authentication
-
-Setup requires additional auth configuration (see `coder-convex` skill for details).
-
-### Pattern 3: With AI/RAG
+### Pattern 2: With AI/RAG
 
 Requires:
 - `OPENAI_API_KEY` in environment
@@ -447,62 +617,81 @@ For a complete fresh setup:
 
 ```bash
 # 1. Install dependencies
-[package-manager] add convex
+[package-manager] add convex @convex-dev/auth
 [package-manager] add -D @types/node typescript
 
 # 2. Create directories
-mkdir -p convex/lib
+mkdir -p convex lib scripts
 
-# 3. Create schema
+# 3. Create auth config
+cat > convex/auth.config.ts << 'EOF'
+export default {
+  providers: [
+    {
+      domain: process.env.CONVEX_SITE_URL,
+      applicationID: "convex",
+    },
+  ],
+};
+EOF
+
+# 4. Create schema with auth
 cat > convex/schema.ts << 'EOF'
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
-export default defineSchema({
+const applicationTables = {
   tasks: defineTable({
     title: v.string(),
     status: v.string(),
   }).index("by_status", ["status"]),
+};
+
+export default defineSchema({
+  ...authTables,
+  ...applicationTables,
 });
 EOF
 
-# 4. Generate environment
-[package-manager] run [generate-env-script]
+# 5. Create setup script (copy from Step 5 above)
+# ...
 
-# 5. Start Docker
-[package-manager] run [docker-up-script]
+# 6. Create docker-compose file (copy from Step 6 above)
+# ...
 
-# 6. Initialize Convex
-[package-manager] run [dev-backend-script]
+# 7. Run setup
+[package-manager] run convex:start
 
-# 7. Deploy functions
-[package-manager] run [deploy-functions-script]
+# 8. Initialize and deploy
+[package-manager] run dev:backend
+[package-manager] run deploy:functions
 ```
-
-## Migration from Convex Cloud
-
-If migrating from Convex Cloud to self-hosted:
-
-1. **Export existing data** from Convex Cloud dashboard
-2. **Update environment variables**:
-   - Change `CONVEX_DEPLOYMENT` from `*.convex.cloud` to self-hosted URL
-   - Generate new `CONVEX_ADMIN_KEY`
-3. **Update schema** to match existing schema
-4. **Import data** to self-hosted instance
-5. **Update frontend imports** to use new deployment URL
-6. **Deploy functions** to self-hosted backend
 
 ## Summary
 
 This skill covers the **one-time setup** of self-hosted Convex in Coder workspaces:
 
-1. Install dependencies
+1. Install dependencies (including `@convex-dev/auth`)
 2. Create directory structure
-3. Define initial schema
-4. Configure Docker
-5. Generate environment variables
-6. Generate admin key
-7. Initialize deployment
-8. Verify setup
+3. Define schema with auth tables
+4. Configure auth (`auth.config.ts` and `auth.ts`)
+5. Create Coder-specific setup script
+6. Configure Docker with proper flags
+7. Generate environment variables
+8. Initialize deployment
+9. Verify setup
 
 For **everyday Convex development** (queries, mutations, React integration, etc.), use the `coder-convex` skill instead.
+
+## Key Differences from Standard Convex
+
+| Aspect | Standard Convex | Coder Convex |
+|--------|----------------|--------------|
+| **Deployment URL** | `*.convex.cloud` | Custom Coder proxy URL |
+| **Environment Variables** | `CONVEX_DEPLOYMENT` | `CONVEX_CLOUD_ORIGIN`, `CONVEX_SITE_ORIGIN`, `CONVEX_SITE_URL` |
+| **Auth Configuration** | Uses Convex Cloud | Points to `CONVEX_SITE_URL` (API URL) |
+| **Site Proxy Port** | Not applicable | **3211** (not 3212) |
+| **S3 Proxy Port** | Not applicable | 3212 (for file storage only) |
+| **Dashboard** | Web dashboard at convex.dev | Local at `localhost:6791` |
+| **Setup Script** | Guided in dashboard | Custom `setup-convex.sh` script |
