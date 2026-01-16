@@ -1,6 +1,6 @@
 ---
 name: skill-optimizer
-description: Refactors and optimizes Claude Code skills using Progressive Disclosure Architecture (PDA). Use when improving existing skills, reducing token usage, or applying best practices.
+description: Refactors Claude Code skills to reduce token usage 80-95% using Progressive Disclosure Architecture (PDA). Splits monolithic skills into orchestrator + reference files, extracts scripts, creates reference/ directories. Use when optimizing skills, improving skill efficiency, refactoring large/bloated skills, reducing token costs, applying PDA, modularizing skills, breaking down skills, or converting encyclopedia-style skills to orchestrator pattern.
 allowed-tools: Read, Write, Edit, Glob
 ---
 
@@ -13,6 +13,8 @@ Transform existing Claude Code skills into optimized, efficient versions using P
 ## When to Use
 
 - User asks to "optimize this skill" or "improve this skill"
+- Optimizing skill metadata for better detection/discovery
+- Improving YAML frontmatter description for trigger coverage
 - Refactoring monolithic skills
 - Applying PDA to existing skills
 - Reducing token costs
@@ -20,7 +22,36 @@ Transform existing Claude Code skills into optimized, efficient versions using P
 
 ## Optimization Process
 
-### Phase 1: Analysis
+### Phase 0: Metadata Optimization (Highest Impact)
+
+**Always start here.** Optimizing the YAML frontmatter yields the highest ROI for skill detection and should be done first, before any content refactoring.
+
+0. **Optimize YAML Frontmatter**
+   - Analyze current `name` and `description` fields
+   - Identify all potential trigger phrases and edge cases
+   - Research best practices for skill discovery
+   - Update description with comprehensive trigger coverage
+
+   **Description Optimization Guidelines:**
+   - Maximum 1024 characters (use available space)
+   - Include both what the skill does AND when to use it
+   - Add specific trigger phrases users might say
+   - Include concrete metrics (e.g., "80-95% token savings")
+   - Mention problem keywords (e.g., "large/bloated", "monolithic")
+   - List action verbs (e.g., "optimize", "refactor", "modularize")
+   - Add pattern keywords (e.g., "orchestrator", "PDA", "encyclopedia-style")
+   - Write in third person
+   - Balance specificity with coverage
+
+   **Metadata Checklist:**
+   - [ ] Description includes concrete metrics/savings
+   - [ ] Problem keywords present (large, bloated, monolithic)
+   - [ ] Multiple action verbs listed
+   - [ ] Pattern terminology included (orchestrator, PDA)
+   - [ ] Edge case triggers covered
+   - [ ] Third-person voice maintained
+   - [ ] Under 1024 character limit
+   - [ ] Name follows conventions (lowercase, hyphens, <64 chars)
 
 1. **Assess Current State**
    - Read SKILL.md
@@ -215,6 +246,16 @@ description: Analyze business data...
 **Savings:** 70-85%
 
 ## Refactoring Checklist
+
+### Metadata Optimization (Phase 0 - Do First)
+- [ ] YAML frontmatter reviewed
+- [ ] Description includes concrete metrics
+- [ ] Problem keywords added (large, bloated, monolithic)
+- [ ] Multiple action verbs listed
+- [ ] Pattern terminology included
+- [ ] Trigger phrases comprehensive
+- [ ] Character count verified (max 1024)
+- [ ] Third-person voice maintained
 
 ### Structure Optimization
 - [ ] SKILL.md reduced to 3-5KB
