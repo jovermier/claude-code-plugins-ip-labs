@@ -22,6 +22,7 @@ This workspace uses a **self-hosted Convex deployment** (not the convex.dev clou
 3. **No Convex Cloud Dashboard**: Direct file-based development
 4. **Admin Key**: Generated via `docker exec` commands
 5. **Environment Variables**: Managed via `.env` files (requires user confirmation)
+6. **CLI Limitations**: The Convex CLI (`npx convex`) is designed primarily for Convex Cloud and has **limited support for self-hosted backends**. Some commands may not work as expected with self-hosted deployments.
 
 ## Required Scripts
 

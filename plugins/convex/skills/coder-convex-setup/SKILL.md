@@ -343,7 +343,10 @@ curl $CONVEX_DEPLOYMENT/health
 | **Admin Key** | Generated via Docker | Auto-provisioned |
 | **Environment Variables** | `.env` file | Dashboard UI |
 | **Authentication** | Custom setup | Built-in |
+| **CLI Support** | Limited - CLI designed for Convex Cloud | Full support |
 | **Cost** | Self-managed infrastructure | Usage-based pricing |
+
+> **IMPORTANT**: The Convex CLI (`npx convex`) is designed primarily for Convex Cloud and has **limited support for self-hosted backends**. Some CLI commands may not work correctly with self-hosted deployments. Environment-based configuration and direct API interaction are often required instead.
 
 ## Environment Variables Reference
 

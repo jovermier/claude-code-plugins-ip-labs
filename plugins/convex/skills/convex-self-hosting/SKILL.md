@@ -9,6 +9,8 @@ Expert guidance for deploying and managing self-hosted Convex instances.
 
 ## Quick Start
 
+> **IMPORTANT CLI LIMITATION**: The Convex CLI (`npx convex`) is designed primarily for Convex Cloud and has **limited support for self-hosted backends**. Many CLI commands may not work correctly with self-hosted deployments. Environment-based configuration and direct API interaction is often required instead.
+
 ```bash
 # Docker deployment (recommended)
 git clone https://github.com/get-convex/convex-backend
@@ -20,7 +22,7 @@ docker compose exec backend ./generate_admin_key.sh
 export CONVEX_SELF_HOSTED_URL=http://127.0.0.1:3210
 export CONVEX_SELF_HOSTED_ADMIN_KEY=<your-key>
 
-# Deploy your functions
+# Deploy your functions (may have limited functionality with self-hosted)
 npx convex deploy
 ```
 
