@@ -1,0 +1,38 @@
+{
+  "description": "Dev plugin hooks - Meta-workflow enforcement, plan archiving, and validation",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/meta-workflow-enforcer.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PrePromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/auto-archive-plans.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Bash": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/git-safety-check.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
