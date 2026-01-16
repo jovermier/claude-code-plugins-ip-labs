@@ -12,7 +12,7 @@
         ]
       }
     ],
-    "PrePromptSubmit": [
+    "SessionEnd": [
       {
         "hooks": [
           {
@@ -23,7 +23,7 @@
         ]
       }
     ],
-    "Bash": [
+    "PreToolUse": [
       {
         "hooks": [
           {
