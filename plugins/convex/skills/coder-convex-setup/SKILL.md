@@ -58,9 +58,6 @@ In a Coder workspace, Convex is exposed through multiple services. Understanding
 | `convex-dashboard` | Convex Dashboard | `localhost:6791` | 6791 | No | Admin dashboard |
 | `convex-api` | Convex API | `localhost:3210` | 3210 | **Yes** | Main API endpoints |
 | `convex-site` | Convex Site | `localhost:3211` | 3211 | **Yes** | **Site Proxy (Auth)** |
-| `convex-s3-proxy` | Convex S3 Proxy | `localhost:3212` | 3212 | **Yes** | S3 file storage (not auth) |
-
-**Critical:** Port 3211 is the **auth/site proxy** port, NOT port 3212. Port 3212 is for S3 proxy functionality only.
 
 ## Step 1: Install Convex Dependencies
 
@@ -499,7 +496,6 @@ curl $CONVEX_SITE_ORIGIN/
 |---------|-----|
 | Convex API | `http://localhost:3210` |
 | Site Proxy (Auth) | `http://localhost:3211` |
-| S3 Proxy | `http://localhost:3212` |
 | Dashboard | `http://localhost:6791` |
 
 ### External (Coder Proxy)
@@ -691,7 +687,6 @@ For **everyday Convex development** (queries, mutations, React integration, etc.
 | **Deployment URL** | `*.convex.cloud` | Custom Coder proxy URL |
 | **Environment Variables** | `CONVEX_DEPLOYMENT` | `CONVEX_CLOUD_ORIGIN`, `CONVEX_SITE_ORIGIN`, `CONVEX_SITE_URL` |
 | **Auth Configuration** | Uses Convex Cloud | Points to `CONVEX_SITE_URL` (API URL) |
-| **Site Proxy Port** | Not applicable | **3211** (not 3212) |
-| **S3 Proxy Port** | Not applicable | 3212 (for file storage only) |
+| **Site Proxy Port** | Not applicable | 3211 |
 | **Dashboard** | Web dashboard at convex.dev | Local at `localhost:6791` |
 | **Setup Script** | Guided in dashboard | Custom `setup-convex.sh` script |

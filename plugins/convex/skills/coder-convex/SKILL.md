@@ -28,9 +28,6 @@ In a Coder workspace, Convex is exposed through multiple services:
 | `convex-dashboard` | Convex Dashboard | `localhost:6791` | 6791 | No | Admin dashboard |
 | `convex-api` | Convex API | `localhost:3210` | 3210 | **Yes** | Main API endpoints |
 | `convex-site` | Convex Site | `localhost:3211` | 3211 | **Yes** | **Site Proxy (Auth)** |
-| `convex-s3-proxy` | Convex S3 Proxy | `localhost:3212` | 3212 | **Yes** | S3 file storage (not auth) |
-
-**Critical:** Port 3211 is the **auth/site proxy** port, NOT port 3212. Port 3212 is for S3 proxy functionality only.
 
 ### Self-Hosted Convex in Coder
 
@@ -723,7 +720,6 @@ const fn: FunctionReference<"query", "public", args, Doc<"tasks">> = api.tasks.g
 |---------|-----|
 | Convex API | `http://localhost:3210` |
 | Site Proxy (Auth) | `http://localhost:3211` |
-| S3 Proxy | `http://localhost:3212` |
 | Dashboard | `http://localhost:6791` |
 
 ### External (Coder Proxy)
@@ -743,7 +739,6 @@ const fn: FunctionReference<"query", "public", args, Doc<"tasks">> = api.tasks.g
 | Environment Variables | `.env.convex.local` file                      | Dashboard UI                |
 | Auth Configuration    | Points to `CONVEX_SITE_URL` (API URL)         | Auto-configured             |
 | Site Proxy Port       | 3211 (auth/site proxy)                        | Not applicable              |
-| S3 Proxy Port         | 3212 (file storage only)                      | Not applicable              |
 | Initial Setup         | Manual (use `coder-convex-setup`)             | Guided in dashboard         |
 | Pricing               | Self-managed infrastructure                    | Usage-based pricing         |
 
@@ -864,7 +859,6 @@ This workspace uses **self-hosted Convex in Coder** with:
 - `@convex-dev/auth` for authentication
 - Port 3211 for site proxy (auth)
 - Port 3210 for API endpoints
-- Port 3212 for S3 proxy (file storage only)
 - Dashboard at `localhost:6791`
 - Environment variables in `.env.convex.local`
 
