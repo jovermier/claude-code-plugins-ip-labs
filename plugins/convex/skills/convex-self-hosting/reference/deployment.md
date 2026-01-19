@@ -258,8 +258,8 @@ services:
 | **Convex Dashboard** | 6791 | Web-based management UI | `dashboard.convex.dev` |
 
 **Internal URLs** (accessible within backend functions):
-- `process.env.CONVEX_CLOUD_URL` - Backend API URL
-- `process.env.CONVEX_SITE_URL` - HTTP actions URL
+- `process.env.CONVEX_CLOUD_ORIGIN` - Backend API URL
+- `process.env.CONVEX_SITE_ORIGIN` - HTTP actions URL (site proxy)
 
 ## System Resources
 

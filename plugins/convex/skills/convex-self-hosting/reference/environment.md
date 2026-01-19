@@ -68,7 +68,7 @@ CONVEX_CLOUD_ORIGIN=https://your-app.fly.dev
 CONVEX_SITE_ORIGIN=https://your-site.fly.dev
 ```
 
-**Accessible As**: `process.env.CONVEX_SITE_URL` in backend functions
+**Accessible As**: `process.env.CONVEX_SITE_ORIGIN` in backend functions
 
 ## Database Configuration
 
@@ -161,6 +161,25 @@ JWT_ISSUER=https://your-convex-url.com
 ```bash
 CLERK_JWT_ISSUER_DOMAIN=https://your-app.clerk.accounts.dev
 ```
+
+### CONVEX_SITE_ORIGIN (Deployment)
+
+**Purpose**: Convex Site URL for auth provider discovery and JWT validation. Used by `auth.config.ts`.
+
+**Required**: For authentication with `@convex-dev/auth`
+
+**Set via**: `npx convex env set CONVEX_SITE_ORIGIN "https://your-convex-site-url.com"`
+
+**Example**:
+```bash
+# For Coder workspaces
+CONVEX_SITE_ORIGIN=https://convex-site--workspace--user.coder.domain
+
+# For local development
+CONVEX_SITE_ORIGIN=http://localhost:3211
+```
+
+**Critical**: This must be set as a deployment environment variable (via `npx convex env set`) because `auth.config.ts` reads it via `process.env.CONVEX_SITE_ORIGIN`.
 
 ## Security Variables
 
@@ -504,6 +523,7 @@ CONVEX_SELF_HOSTED_ADMIN_KEY=your-admin-key
 JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----..."
 JWKS='{"keys":[...]}'
 JWT_ISSUER=https://your-convex-url.com
+CONVEX_SITE_ORIGIN=https://convex-site--workspace--user.coder.domain  # Set via npx convex env set
 ```
 
 ### Required for PostgreSQL

@@ -1656,6 +1656,108 @@ spec:
 
 ---
 
+### Coder Workspace Deployment
+
+**[Coder Documentation](https://coder.com/)**
+
+Coder workspaces provide automatic port-based DNS routing for self-hosted services.
+
+**URL Pattern:**
+```
+https://<service>--<workspace>--<owner>.coder.<domain>
+```
+
+**Required Services:**
+
+| Service | Port | URL Pattern | Purpose |
+|---------|------|-------------|---------|
+| Convex API | 3210 | `https://convex-api--<workspace>--<owner>.coder.<domain>` | Main API endpoint |
+| Convex Site Proxy | 3211 | `https://convex-site--<workspace>--<owner>.coder.<domain>` | HTTP actions / auth |
+| Convex Dashboard | 6791 | `https://convex--<workspace>--<owner>.coder.<domain>` | Dashboard UI |
+
+**Environment Variables:**
+```bash
+CONVEX_CLOUD_ORIGIN=https://convex-api--<workspace>--<owner>.coder.<domain>
+CONVEX_SITE_ORIGIN=https://convex-site--<workspace>--<owner>.coder.<domain>
+CONVEX_SITE_URL=https://convex-api--<workspace>--<owner>.coder.<domain>
+JWT_ISSUER=https://convex-site--<workspace>--<owner>.coder.<domain>
+POSTGRES_URL=<coder-provided-postgres-url>?sslmode=disable
+```
+
+**JWT Key Handling for Auth:**
+
+For @convex-dev/auth to work in Coder, you must load `JWT_PRIVATE_KEY` from a mounted file:
+
+1. **Generate PKCS#8 formatted key:**
+   ```bash
+   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out jwt_private_key.pem
+   ```
+
+2. **Create custom entrypoint** ([convex-backend-entrypoint.sh](convex-backend-entrypoint.sh)):
+   ```bash
+   #!/bin/bash
+   set -e
+
+   # Load JWT_PRIVATE_KEY from mounted file
+   if [ -f /jwt_private_key.pem ]; then
+     echo "Loading JWT_PRIVATE_KEY from /jwt_private_key.pem..."
+     DECODED_KEY=$(cat /jwt_private_key.pem)
+     export JWT_PRIVATE_KEY="$DECODED_KEY"
+   fi
+
+   # Run Convex backend
+   exec env JWT_PRIVATE_KEY="$JWT_PRIVATE_KEY" ./convex-local-backend \
+     --instance-name "$INSTANCE_NAME" \
+     --instance-secret "$INSTANCE_SECRET" \
+     --port 3210 \
+     --site-proxy-port 3211 \
+     --convex-origin "$CONVEX_CLOUD_ORIGIN" \
+     --convex-site "$CONVEX_SITE_ORIGIN" \
+     --db postgres-v5 \
+     "$POSTGRES_URL"
+   ```
+
+3. **Docker Compose configuration:**
+   ```yaml
+   services:
+     convex-backend:
+       image: ghcr.io/get-convex/convex-backend:latest
+       env_file:
+         - .env.convex.local
+       ports:
+         - "3210:3210"
+         - "3211:3211"
+       volumes:
+         - convex-data:/convex/data
+         - ./jwt_private_key.pem:/jwt_private_key.pem:ro
+         - ./convex-backend-entrypoint.sh:/convex-backend-entrypoint.sh:ro
+       entrypoint: ["/bin/bash", "/convex-backend-entrypoint.sh"]
+       environment:
+         - CONVEX_CLOUD_ORIGIN=${CONVEX_CLOUD_ORIGIN}
+         - CONVEX_SITE_ORIGIN=${CONVEX_SITE_ORIGIN}
+         - CONVEX_SITE_URL=${CONVEX_SITE_URL}
+         - JWT_ISSUER=${JWT_ISSUER}
+         - POSTGRES_URL=${POSTGRES_URL}
+         - INSTANCE_NAME=app
+         - DO_NOT_REQUIRE_SSL=true
+   ```
+
+**Auth Configuration** ([convex/auth.config.ts](convex/auth.config.ts)):
+```typescript
+export default {
+  providers: [
+    {
+      domain: process.env.CONVEX_SITE_URL,  // Points to API URL
+      applicationID: "convex",
+    },
+  ],
+};
+```
+
+For complete Coder workspace setup instructions, see the `coder-convex-setup` skill.
+
+---
+
 ## Gotchas and Non-Obvious Issues
 
 ### Security Gotchas
@@ -1957,6 +2059,7 @@ Support is **community-only** via:
 | **Railway** | [Deploy Convex](https://railway.com/deploy/convex) | One-click deploy |
 | **Railway + Postgres** | [Convex + Postgres](https://railway.com/deploy/convex-postgres) | One-click deploy |
 | **Neon.tech** | [Neon + Convex Guide](https://neon.com/guides/convex-neon) | Serverless Postgres |
+| **Coder** | [Coder Workspaces](https://coder.com/) | See `coder-convex-setup` skill |
 
 ### Community Tools
 

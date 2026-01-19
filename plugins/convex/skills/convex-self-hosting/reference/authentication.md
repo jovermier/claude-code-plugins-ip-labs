@@ -164,14 +164,17 @@ npx convex env set JWKS '{"keys":[{"kty":"RSA",...}]}'
 
 ## 3. JWT_ISSUER
 
-**Purpose**: The issuer URL for JWT tokens. Must match your Convex deployment URL or be configured based on your auth provider.
+**Purpose**: The issuer URL for JWT tokens. For self-hosted Convex with @convex-dev/auth, this should point to the **Convex Site Proxy URL** (port 3211).
 
 ### For Self-Hosted Convex with Custom Auth
 
 ```bash
-# Use your Convex API URL from Coder DNS routing
-JWT_ISSUER=https://convex-api--<workspace>--<owner>.coder.<domain>
+# Use your Convex Site Proxy URL (CONVEX_SITE_ORIGIN)
+# This is the convex-site service, not convex-api
+JWT_ISSUER=https://convex-site--<workspace>--<owner>.coder.<domain>
 ```
+
+> **Important**: `JWT_ISSUER` must use the **convex-site** URL (CONVEX_SITE_ORIGIN), not the convex-api URL. The site proxy handles HTTP actions and is the correct issuer for JWT tokens.
 
 > **Note**: Replace `<workspace>`, `<owner>`, and `<domain>` with your specific Coder environment values.
 

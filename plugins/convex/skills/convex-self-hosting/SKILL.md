@@ -159,16 +159,73 @@ One-click deployment with built-in Postgres.
 
 ### Coder Workspace
 
-Use Coder's automatic port-based DNS routing:
+For Coder workspaces, use the automatic port-based DNS routing:
 ```
-https://<slug>--<workspace>--<owner>.coder.<domain>
+https://<service>--<workspace>--<owner>.coder.<domain>
 ```
 
 > **Note**: Replace `<workspace>`, `<owner>`, and `<domain>` with your specific Coder environment values.
 
-Example:
-- Convex API (3210): `https://convex-api--<workspace>--<owner>.coder.<domain>`
-- Dashboard (6791): `https://convex--<workspace>--<owner>.coder.<domain>`
+**Required Services:**
+
+| Service | Port | URL Pattern | Purpose |
+|---------|------|-------------|---------|
+| Convex API | 3210 | `https://convex-api--<workspace>--<owner>.coder.<domain>` | Main API endpoint |
+| Convex Site Proxy | 3211 | `https://convex-site--<workspace>--<owner>.coder.<domain>` | HTTP actions / auth |
+| Convex Dashboard | 6791 | `https://convex--<workspace>--<owner>.coder.<domain>` | Dashboard UI |
+
+**Required Environment Variables for Coder:**
+```bash
+CONVEX_CLOUD_ORIGIN=https://convex-api--<workspace>--<owner>.coder.<domain>
+CONVEX_SITE_ORIGIN=https://convex-site--<workspace>--<owner>.coder.<domain>
+JWT_ISSUER=https://convex-site--<workspace>--<owner>.coder.<domain>
+```
+
+**JWT Key Handling for Coder:**
+
+For proper authentication in Coder workspaces, use a custom entrypoint script that loads the JWT_PRIVATE_KEY from a mounted file:
+
+1. **Generate PKCS#8 formatted key:**
+   ```bash
+   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out jwt_private_key.pem
+   ```
+
+2. **Create custom entrypoint** ([convex-backend-entrypoint.sh](convex-backend-entrypoint.sh)):
+   ```bash
+   #!/bin/bash
+   set -e
+
+   # Load JWT_PRIVATE_KEY from mounted file
+   if [ -f /jwt_private_key.pem ]; then
+     echo "Loading JWT_PRIVATE_KEY from /jwt_private_key.pem..."
+     DECODED_KEY=$(cat /jwt_private_key.pem)
+     export JWT_PRIVATE_KEY="$DECODED_KEY"
+   fi
+
+   # Run Convex backend
+   exec env JWT_PRIVATE_KEY="$JWT_PRIVATE_KEY" ./convex-local-backend \
+     --instance-name "$INSTANCE_NAME" \
+     --instance-secret "$INSTANCE_SECRET" \
+     --port 3210 \
+     --site-proxy-port 3211 \
+     --convex-origin "$CONVEX_CLOUD_ORIGIN" \
+     --convex-site "$CONVEX_SITE_ORIGIN" \
+     --db postgres-v5 \
+     "$POSTGRES_URL"
+   ```
+
+3. **Mount in Docker Compose:**
+   ```yaml
+   services:
+     convex-backend:
+       image: ghcr.io/get-convex/convex-backend:latest
+       volumes:
+         - ./jwt_private_key.pem:/jwt_private_key.pem:ro
+         - ./convex-backend-entrypoint.sh:/convex-backend-entrypoint.sh:ro
+       entrypoint: ["/bin/bash", "/convex-backend-entrypoint.sh"]
+   ```
+
+For complete Coder workspace setup, see the `coder-convex-setup` skill.
 
 ## Production Checklist
 
