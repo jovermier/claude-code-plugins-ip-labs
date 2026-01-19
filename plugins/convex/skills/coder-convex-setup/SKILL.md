@@ -499,7 +499,7 @@ volumes:
 - **Volume Mount**: `jwt_private_key.pem` is mounted at `/jwt_private_key.pem:ro`
 - **Ports**: 3210 (API), 3211 (site proxy for auth), 6791 (dashboard)
 - **`CONVEX_CLOUD_ORIGIN`**: External URL for the API (for internal Convex communication)
-- **`CONVEX_SITE_ORIGIN`**: External URL for the site proxy (for auth provider discovery and `auth.config.ts`)
+- **`CONVEX_SITE_ORIGIN`**: External URL for the site proxy (for auth provider discovery, set via `npx convex env set`)
 - **`JWT_ISSUER`**: Points to site proxy URL
 - **Healthcheck**: Ensures backend is ready before dashboard starts
 
@@ -700,7 +700,7 @@ if ! echo "$JWT_PRIVATE_KEY" | npx convex env set JWT_PRIVATE_KEY; then
     exit 1
 fi
 
-# Set CONVEX_SITE_ORIGIN (required by auth.config.ts)
+# Set CONVEX_SITE_ORIGIN (required for auth provider discovery)
 echo "  Setting CONVEX_SITE_ORIGIN..."
 if ! npx convex env set CONVEX_SITE_ORIGIN "$CONVEX_SITE_ORIGIN"; then
     echo "❌ Failed to set CONVEX_SITE_ORIGIN"
@@ -973,7 +973,7 @@ CONVEX_SITE_ORIGIN = JWT_ISSUER (both point to convex-site, port 3211)
 
 **Why this works:**
 - All Convex client communication goes through the API (port 3210)
-- The `domain` in `auth.config.ts` uses `CONVEX_SITE_ORIGIN` (site proxy, port 3211) for auth provider discovery
+- The `CONVEX_SITE_ORIGIN` is used for auth provider discovery (set via `npx convex env set`)
 - The site proxy (port 3211) handles HTTP routes and auth endpoint discovery
 - JWT tokens are validated against the `JWT_ISSUER` which must match `CONVEX_SITE_ORIGIN`
 
@@ -1137,6 +1137,28 @@ This skill covers the **one-time setup** of self-hosted Convex in Coder workspac
 10. Verify setup
 
 For **everyday Convex development** (queries, mutations, React integration, etc.), use the `coder-convex` skill instead.
+
+## Working Example Reference
+
+For a complete, working implementation of self-hosted Convex in a Coder workspace, you can reference:
+
+**[jovermier/convex-ai-chat](https://github.com/jovermier/convex-ai-chat)**
+
+This project demonstrates:
+- Self-hosted Convex deployment with Docker Compose
+- Complete authentication setup using `@convex-dev/auth`
+- Coder workspace environment configuration
+- PostgreSQL database integration
+- React frontend with Convex integration
+- **`start.sh` and `stop.sh` scripts** that fully sequence the initialization (env files, admin key generation, deployment)
+
+**Use this reference to:**
+- See how all the pieces connect in a real project
+- Verify your setup against a working implementation
+- Copy configuration patterns (docker-compose, environment setup, scripts)
+- Reference the `start.sh` script for the complete initialization sequence
+
+**Note:** This is a demonstration project. Follow the setup steps in this skill for your own project rather than cloning the repo directly.
 
 ## Key Differences from Standard Convex
 

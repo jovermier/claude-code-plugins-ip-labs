@@ -22,7 +22,7 @@ CONVEX_SELF_HOSTED_URL=http://127.0.0.1:3210
 
 ### CONVEX_SELF_HOSTED_ADMIN_KEY
 
-**Purpose**: Admin authentication key for deployment and dashboard access.
+**Purpose**: Admin authentication key for the Convex CLI (`npx convex deploy`, etc.).
 
 **Required**: Yes
 
@@ -41,6 +41,25 @@ docker compose exec backend ./generate_admin_key.sh
 - Rotate regularly (quarterly recommended)
 - Use different keys for dev/staging/production
 - Store in secret management systems for production
+
+### CONVEX_ADMIN_KEY
+
+**Purpose**: Admin authentication key used by the Docker container internally.
+
+**Required**: Yes (for Docker deployments)
+
+**Example**:
+```bash
+CONVEX_ADMIN_KEY=app|0123456789abcdef...
+```
+
+**Important Notes**:
+- This is the **same value** as `CONVEX_SELF_HOSTED_ADMIN_KEY`
+- The Docker container uses `CONVEX_ADMIN_KEY` (set via docker-compose.yml or environment)
+- The Convex CLI uses `CONVEX_SELF_HOSTED_ADMIN_KEY` (set in `.env.local`)
+- Both must be set to the same key value for proper operation
+
+**Generation**: Same as `CONVEX_SELF_HOSTED_ADMIN_KEY` - generate once and use for both variables.
 
 ## Platform-Specific Variables
 
@@ -164,7 +183,7 @@ CLERK_JWT_ISSUER_DOMAIN=https://your-app.clerk.accounts.dev
 
 ### CONVEX_SITE_ORIGIN (Deployment)
 
-**Purpose**: Convex Site URL for auth provider discovery and JWT validation. Used by `auth.config.ts`.
+**Purpose**: Convex Site URL for auth provider discovery and JWT validation. Used by the auth system when set as a deployment environment variable.
 
 **Required**: For authentication with `@convex-dev/auth`
 
@@ -179,7 +198,7 @@ CONVEX_SITE_ORIGIN=https://convex-site--workspace--user.coder.domain
 CONVEX_SITE_ORIGIN=http://localhost:3211
 ```
 
-**Critical**: This must be set as a deployment environment variable (via `npx convex env set`) because `auth.config.ts` reads it via `process.env.CONVEX_SITE_ORIGIN`.
+**Critical**: This must be set as a deployment environment variable (via `npx convex env set`) so the auth system can read it via `process.env.CONVEX_SITE_ORIGIN`.
 
 ## Security Variables
 
@@ -513,9 +532,15 @@ cluster url already contains db name: /app
 ### Required for Self-Hosting
 
 ```bash
+# For Convex CLI (in .env.local)
 CONVEX_SELF_HOSTED_URL=http://your-backend:3210
 CONVEX_SELF_HOSTED_ADMIN_KEY=your-admin-key
+
+# For Docker container (in docker-compose.yml or .env.convex.local)
+CONVEX_ADMIN_KEY=your-admin-key  # Same value as CONVEX_SELF_HOSTED_ADMIN_KEY
 ```
+
+> **Note**: `CONVEX_ADMIN_KEY` and `CONVEX_SELF_HOSTED_ADMIN_KEY` should be set to the **same key value**. The Docker container uses `CONVEX_ADMIN_KEY` while the Convex CLI uses `CONVEX_SELF_HOSTED_ADMIN_KEY`.
 
 ### Required for Authentication
 

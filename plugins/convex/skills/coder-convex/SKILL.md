@@ -67,7 +67,8 @@ convex/
 │   ├── server.d.ts      # Server-side function types
 │   └── dataModel.d.ts   # Database model types
 ├── schema.ts            # Database schema definition
-├── auth.config.ts       # Auth configuration (required for Coder)
+├── router.ts            # HTTP routes (required for auth endpoints)
+└── http.ts              # HTTP exports with auth routes (required for Coder)
 ├── auth.ts              # Auth utilities
 ├── messages.ts          # Chat/messaging functions
 ├── rag.ts               # RAG (Retrieval Augmented Generation) functions
