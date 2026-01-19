@@ -197,7 +197,6 @@ if [ -n "$CODER" ] && [ -n "$CODER_WORKSPACE_NAME" ]; then
 
   # Generate Coder-specific URLs
   # Format: <protocol>://<service>--<workspace>--<owner>.<coder-domain>
-  # Example: https://convex-api--convex-ai-chat6--jovermier.coder.hahomelabs.com
   CONVEX_API_URL="${CODER_PROTOCOL}://convex-api--${WORKSPACE_NAME}--${USERNAME}.${CODER_DOMAIN}"
   CONVEX_SITE_URL="${CODER_PROTOCOL}://convex-site--${WORKSPACE_NAME}--${USERNAME}.${CODER_DOMAIN}"
   CONVEX_DASHBOARD_URL="${CODER_PROTOCOL}://convex--${WORKSPACE_NAME}--${USERNAME}.${CODER_DOMAIN}"
